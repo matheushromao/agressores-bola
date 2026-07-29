@@ -4,6 +4,15 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
+### Configuração local / credenciais (NÃO versionar) ###
+src/main/resources/application.yaml
+src/main/resources/application.yml
+src/main/resources/application*.yaml
+src/main/resources/application*.yml
+src/main/resources/application*.properties
+!src/main/resources/application-example.yaml
+.env
+
 ### STS ###
 .apt_generated
 .classpath

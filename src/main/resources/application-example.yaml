@@ -1,0 +1,16 @@
+# Modelo de configuração. Copie este arquivo para application.yaml
+# e preencha com as suas credenciais locais do MySQL.
+# O application.yaml está no .gitignore e NUNCA deve ser commitado.
+spring:
+  application:
+    name: agressores-da-bola
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/agressores-db?createDatabaseIfNotExist=true
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:senha_local}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    generate-ddl: true
+    show-sql: true
