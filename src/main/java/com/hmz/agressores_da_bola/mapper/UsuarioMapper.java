@@ -2,6 +2,7 @@ package com.hmz.agressores_da_bola.mapper;
 
 import com.hmz.agressores_da_bola.dto.UsuarioRequest;
 import com.hmz.agressores_da_bola.dto.UsuarioResponse;
+import com.hmz.agressores_da_bola.dto.UsuarioResumoResponse;
 import com.hmz.agressores_da_bola.model.Usuario;
 import org.springframework.stereotype.Component;
 
@@ -48,6 +49,23 @@ public class UsuarioMapper {
                 usuario.getPosicao(),
                 usuario.getPosicao() != null ? usuario.getPosicao().getDescricao() : null,
                 usuario.getNacionalidade()
+        );
+    }
+
+    /**
+     * Visão reduzida usada quando o usuário aparece dentro de outro recurso
+     * (organizador ou participante de uma pelada).
+     */
+    public UsuarioResumoResponse toResumoResponse(Usuario usuario) {
+        if (usuario == null) {
+            return null;
+        }
+        return new UsuarioResumoResponse(
+                usuario.getId(),
+                usuario.getNickname(),
+                usuario.getNomeCompleto(),
+                usuario.getPosicao(),
+                usuario.getPosicao() != null ? usuario.getPosicao().getDescricao() : null
         );
     }
 }

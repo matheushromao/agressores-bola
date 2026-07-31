@@ -1,18 +1,21 @@
 package com.hmz.agressores_da_bola.controller;
 
+import com.hmz.agressores_da_bola.dto.PageResponse;
 import com.hmz.agressores_da_bola.dto.UsuarioRequest;
 import com.hmz.agressores_da_bola.dto.UsuarioResponse;
 import com.hmz.agressores_da_bola.model.enums.Posicao;
 import com.hmz.agressores_da_bola.service.UsuarioService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/usuarios")
@@ -31,12 +34,18 @@ public class UsuarioController {
         return ResponseEntity.created(location).body(response);
     }
 
+    /**
+     * Listagem paginada: {@code ?page=0&size=10&sort=nomeCompleto,asc}.
+     * O @PageableDefault define o comportamento quando o cliente não manda
+     * nada, então o backend nunca devolve a tabela inteira.
+     */
     @GetMapping
-    public ResponseEntity<List<UsuarioResponse>> listar(@RequestParam(required = false) Posicao posicao) {
-        List<UsuarioResponse> usuarios = posicao == null
-                ? usuarioService.listarTodos()
-                : usuarioService.listarPorPosicao(posicao);
-        return ResponseEntity.ok(usuarios);
+    public ResponseEntity<PageResponse<UsuarioResponse>> listar(
+            @RequestParam(required = false) Posicao posicao,
+            @RequestParam(required = false) String busca,
+            @RequestParam(required = false) String nacionalidade,
+            @PageableDefault(size = 10, sort = "nomeCompleto", direction = Sort.Direction.ASC) Pageable pageable) {
+        return ResponseEntity.ok(usuarioService.listar(posicao, busca, nacionalidade, pageable));
     }
 
     @GetMapping("/{id}")
