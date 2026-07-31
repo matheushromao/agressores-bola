@@ -14,3 +14,12 @@ spring:
       ddl-auto: update
     generate-ddl: true
     show-sql: true
+  data:
+    web:
+      pageable:
+        # Tamanho usado quando o cliente não informa "size"
+        default-page-size: 10
+        # Teto de segurança: impede ?size=100000 derrubar a aplicação
+        max-page-size: 50
+        # A primeira página é a 0 (padrão do Spring Data)
+        one-indexed-parameters: false

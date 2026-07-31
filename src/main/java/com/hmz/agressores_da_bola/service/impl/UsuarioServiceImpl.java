@@ -1,5 +1,6 @@
 package com.hmz.agressores_da_bola.service.impl;
 
+import com.hmz.agressores_da_bola.dto.PageResponse;
 import com.hmz.agressores_da_bola.dto.UsuarioRequest;
 import com.hmz.agressores_da_bola.dto.UsuarioResponse;
 import com.hmz.agressores_da_bola.exception.RecursoNaoEncontradoException;
@@ -8,12 +9,14 @@ import com.hmz.agressores_da_bola.mapper.UsuarioMapper;
 import com.hmz.agressores_da_bola.model.Usuario;
 import com.hmz.agressores_da_bola.model.enums.Posicao;
 import com.hmz.agressores_da_bola.repository.UsuarioRepository;
+import com.hmz.agressores_da_bola.repository.specification.UsuarioSpecification;
 import com.hmz.agressores_da_bola.service.UsuarioService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -49,20 +52,15 @@ public class UsuarioServiceImpl implements UsuarioService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<UsuarioResponse> listarTodos() {
-        return usuarioRepository.findAll()
-                .stream()
-                .map(usuarioMapper::toResponse)
-                .toList();
-    }
+    public PageResponse<UsuarioResponse> listar(Posicao posicao, String busca, String nacionalidade, Pageable pageable) {
+        Specification<Usuario> filtros = Specification.allOf(
+                UsuarioSpecification.comPosicao(posicao),
+                UsuarioSpecification.comNomeOuNickname(busca),
+                UsuarioSpecification.daNacionalidade(nacionalidade)
+        );
 
-    @Override
-    @Transactional(readOnly = true)
-    public List<UsuarioResponse> listarPorPosicao(Posicao posicao) {
-        return usuarioRepository.findByPosicao(posicao)
-                .stream()
-                .map(usuarioMapper::toResponse)
-                .toList();
+        Page<Usuario> pagina = usuarioRepository.findAll(filtros, pageable);
+        return PageResponse.de(pagina, usuarioMapper::toResponse);
     }
 
     @Override
