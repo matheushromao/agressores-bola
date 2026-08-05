@@ -2,6 +2,8 @@ package com.hmz.agressores_da_bola.dto;
 
 import com.hmz.agressores_da_bola.model.enums.Posicao;
 
+import java.math.BigDecimal;
+
 public record UsuarioResponse(
         Long id,
         String nomeCompleto,
@@ -12,6 +14,7 @@ public record UsuarioResponse(
         Integer idade,
         Posicao posicao,
         String posicaoDescricao,
-        String nacionalidade
+        String nacionalidade,
+        BigDecimal estrelas
 ) {
 }

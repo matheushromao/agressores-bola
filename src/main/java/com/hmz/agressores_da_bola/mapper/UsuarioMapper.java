@@ -23,6 +23,7 @@ public class UsuarioMapper {
                 .idade(request.idade())
                 .posicao(request.posicao())
                 .nacionalidade(request.nacionalidade())
+                .estrelas(request.estrelas())
                 .build();
     }
 
@@ -35,6 +36,7 @@ public class UsuarioMapper {
         usuario.setIdade(request.idade());
         usuario.setPosicao(request.posicao());
         usuario.setNacionalidade(request.nacionalidade());
+        usuario.setEstrelas(request.estrelas());
     }
 
     public UsuarioResponse toResponse(Usuario usuario) {
@@ -48,7 +50,8 @@ public class UsuarioMapper {
                 usuario.getIdade(),
                 usuario.getPosicao(),
                 usuario.getPosicao() != null ? usuario.getPosicao().getDescricao() : null,
-                usuario.getNacionalidade()
+                usuario.getNacionalidade(),
+                usuario.getEstrelas()
         );
     }
 
@@ -65,7 +68,8 @@ public class UsuarioMapper {
                 usuario.getNickname(),
                 usuario.getNomeCompleto(),
                 usuario.getPosicao(),
-                usuario.getPosicao() != null ? usuario.getPosicao().getDescricao() : null
+                usuario.getPosicao() != null ? usuario.getPosicao().getDescricao() : null,
+                usuario.estrelasOuPadrao()
         );
     }
 }

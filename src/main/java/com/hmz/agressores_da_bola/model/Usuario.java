@@ -8,6 +8,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
+
 @Entity
 @Table(name = "tb_usuarios")
 @Getter
@@ -16,6 +18,12 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Usuario {
+
+    /**
+     * Nota usada quando o jogador ainda não foi avaliado: o meio da escala,
+     * para não favorecer nem prejudicar o time que o receber no sorteio.
+     */
+    public static final BigDecimal ESTRELAS_PADRAO = new BigDecimal("3.0");
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -45,6 +53,25 @@ public class Usuario {
 
     @Column(nullable = false, length = 60)
     private String nacionalidade;
+
+    /**
+     * Nível técnico do jogador, de 1 a 5 estrelas com meia estrela de passo.
+     * É a nota que o sorteio usa para equilibrar os times.
+     *
+     * <p>Aceita nulo no banco para não quebrar cadastros anteriores ao
+     * atributo; quem não tem nota entra no sorteio como jogador mediano
+     * através de {@link #estrelasOuPadrao()}.</p>
+     */
+    @Column(precision = 2, scale = 1)
+    private BigDecimal estrelas;
+
+    public BigDecimal estrelasOuPadrao() {
+        return estrelas == null ? ESTRELAS_PADRAO : estrelas;
+    }
+
+    public boolean ehGoleiro() {
+        return posicao == Posicao.GOLEIRO;
+    }
 
     @Override
     public boolean equals(Object o) {

@@ -51,6 +51,31 @@ public class ParticipacaoPelada {
     @Column(name = "data_inscricao", nullable = false)
     private LocalDateTime dataInscricao;
 
+    /**
+     * Súmula do jogador nesta pelada. Segue o ciclo de vida da participação:
+     * tirar o jogador da escalação apaga os números dele naquele jogo.
+     */
+    @OneToOne(mappedBy = "participacao", cascade = CascadeType.ALL,
+            orphanRemoval = true, fetch = FetchType.LAZY)
+    private EstatisticaPartida estatistica;
+
+    public void definirEstatistica(EstatisticaPartida estatistica) {
+        estatistica.setParticipacao(this);
+        this.estatistica = estatistica;
+    }
+
+    /**
+     * Basta soltar a referência: o {@code orphanRemoval} apaga a súmula órfã
+     * no flush, sem precisar mexer na chave estrangeira do outro lado.
+     */
+    public void removerEstatistica() {
+        this.estatistica = null;
+    }
+
+    public boolean estaConfirmado() {
+        return status != null && status.ocupaVaga();
+    }
+
     @PrePersist
     private void aoPersistir() {
         if (dataInscricao == null) {
