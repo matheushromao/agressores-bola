@@ -760,7 +760,7 @@ compilam. A transação é desfeita ao fim de cada teste, então nada sobra na b
 
 ## Licença
 
-Projeto pessoal de estudo. Nenhuma licença definida — todos os direitos reservados ao autor.
+Projeto pessoal. Nenhuma licença definida — todos os direitos reservados ao autor.
 
 ## Autor
 

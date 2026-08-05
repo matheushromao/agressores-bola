@@ -9,6 +9,7 @@ arquivo aqui, descrevendo **o que foi feito**, **por quê** e **como usar**.
 |-------|-----------|----------|
 | 1 | [passo-01-configuracao-e-usuario.md](passo-01-configuracao-e-usuario.md) | Setup do projeto, conexão MySQL, entidade `Usuario`, camadas MVC, tratamento global de erros |
 | 2 | [passo-02-pelada-e-paginacao.md](passo-02-pelada-e-paginacao.md) | Entidade `Pelada`, escalação de participantes, paginação no backend (`Pageable`) |
+| 3 | [passo-03-estatisticas-ranking-e-sorteio.md](passo-03-estatisticas-ranking-e-sorteio.md) | Súmula por jogador, tabela de pontuação, rankings agregados e sorteio de times equilibrado por estrelas |
 
 ## Sobre o projeto
 
@@ -26,12 +27,14 @@ O projeto segue MVC com separação de camadas e princípios SOLID:
 ```
 controller/   → recebe HTTP, valida o formato da entrada, devolve status code
 service/      → interface do caso de uso (contrato)
-service/impl/ → regras de negócio e controle transacional
+  impl/       → regras de negócio e controle transacional
+  sorteio/    → algoritmo de balanceamento de times, isolado de Spring e JPA
 repository/   → acesso a dados (Spring Data JPA)
   specification/ → filtros dinâmicos e combináveis das listagens
+  projection/    → projeções de consultas agregadas (rankings)
 mapper/       → conversão entidade ⇄ DTO
-model/        → entidades JPA
-  enums/      → domínios fechados (posição, status, tipo de campo)
+model/        → entidades JPA e objetos de valor do domínio
+  enums/      → domínios fechados (posição, status, tipo de campo, pontuação)
 dto/          → contratos de entrada e saída da API (records)
 exception/    → exceções de domínio e handler global
 ```
@@ -49,6 +52,14 @@ cp src/main/resources/application-example.yaml src/main/resources/application.ya
 
 # 2. Suba a aplicação
 ./mvnw spring-boot:run
+
+# 3. Rode a suíte de testes (exige o MySQL no ar)
+./mvnw test
 ```
 
 A API sobe em `http://localhost:8080`.
+
+> A referência completa da API — endpoints, exemplos, regras de negócio e notas
+> de segurança — está no [README do projeto](../README.md). Os documentos desta
+> pasta contam **como cada passo foi construído e por quê**; o README conta
+> **como usar o que existe hoje**.
