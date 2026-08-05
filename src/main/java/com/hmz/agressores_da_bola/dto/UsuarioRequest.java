@@ -1,6 +1,10 @@
 package com.hmz.agressores_da_bola.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.hmz.agressores_da_bola.model.enums.Posicao;
+import jakarta.validation.constraints.AssertTrue;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -8,6 +12,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+
+import java.math.BigDecimal;
 
 public record UsuarioRequest(
 
@@ -44,7 +50,26 @@ public record UsuarioRequest(
 
         @NotBlank(message = "A nacionalidade é obrigatória")
         @Size(max = 60, message = "A nacionalidade deve ter no máximo 60 caracteres")
-        String nacionalidade
+        String nacionalidade,
+
+        // Opcional: quem não é avaliado entra como jogador mediano (3 estrelas).
+        @DecimalMin(value = "1.0", message = "A classificação mínima é 1 estrela")
+        @DecimalMax(value = "5.0", message = "A classificação máxima é 5 estrelas")
+        BigDecimal estrelas
 
 ) {
+
+    /**
+     * A escala aceita apenas notas cheias e meias notas (1, 1.5, 2, ... 5).
+     * O Bean Validation não expressa "múltiplo de", então a checagem vem aqui.
+     */
+    @JsonIgnore
+    @AssertTrue(message = "A classificação deve variar de meia em meia estrela, por exemplo 3.5")
+    public boolean isEstrelasNaEscala() {
+        return estrelas == null
+                || estrelas.stripTrailingZeros().scale() <= 1
+                && estrelas.remainder(PASSO_DA_ESCALA).compareTo(BigDecimal.ZERO) == 0;
+    }
+
+    private static final BigDecimal PASSO_DA_ESCALA = new BigDecimal("0.5");
 }
