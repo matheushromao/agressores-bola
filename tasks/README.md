@@ -10,6 +10,7 @@ arquivo aqui, descrevendo **o que foi feito**, **por quê** e **como usar**.
 | 1 | [passo-01-configuracao-e-usuario.md](passo-01-configuracao-e-usuario.md) | Setup do projeto, conexão MySQL, entidade `Usuario`, camadas MVC, tratamento global de erros |
 | 2 | [passo-02-pelada-e-paginacao.md](passo-02-pelada-e-paginacao.md) | Entidade `Pelada`, escalação de participantes, paginação no backend (`Pageable`) |
 | 3 | [passo-03-estatisticas-ranking-e-sorteio.md](passo-03-estatisticas-ranking-e-sorteio.md) | Súmula por jogador, tabela de pontuação, rankings agregados e sorteio de times equilibrado por estrelas |
+| 4 | [passo-04-auditoria-de-camadas-e-testes-de-endpoints.md](passo-04-auditoria-de-camadas-e-testes-de-endpoints.md) | Auditoria de SOLID/MVC camada a camada, exercício de todos os endpoints via HTTP (132 verificações) e roteiro dos próximos passos |
 
 ## Sobre o projeto
 
