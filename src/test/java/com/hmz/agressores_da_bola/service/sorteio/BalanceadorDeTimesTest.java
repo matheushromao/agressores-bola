@@ -84,7 +84,7 @@ class BalanceadorDeTimesTest {
     @Test
     @DisplayName("trata jogador sem avaliação como mediano")
     void deveUsarAEstrelaPadraoDeQuemNaoFoiAvaliado() {
-        Usuario semNota = usuario("sem-nota", Posicao.MEIA, null);
+        Usuario semNota = usuario("sem-nota", Posicao.ALA, null);
 
         JogadorSorteavel jogador = JogadorSorteavel.de(semNota);
 
@@ -97,7 +97,7 @@ class BalanceadorDeTimesTest {
         List<JogadorSorteavel> jogadores = new ArrayList<>(estrelas.length);
         for (int indice = 0; indice < estrelas.length; indice++) {
             jogadores.add(JogadorSorteavel.de(
-                    usuario("jogador" + indice, Posicao.MEIA, new BigDecimal(estrelas[indice]))));
+                    usuario("jogador" + indice, Posicao.ALA, new BigDecimal(estrelas[indice]))));
         }
         return jogadores;
     }

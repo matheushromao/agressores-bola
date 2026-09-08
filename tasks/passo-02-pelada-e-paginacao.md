@@ -20,7 +20,7 @@
 ```
 model/Pelada.java                                  entidade principal
 model/ParticipacaoPelada.java                      escalação (pelada ⇄ usuário)
-model/enums/TipoCampo.java                         CAMPO, SOCIETY, FUTSAL, QUADRA, AREIA
+model/enums/TipoCampo.java                         FUTSAL, SOCIETY
 model/enums/StatusPelada.java                      AGENDADA … CANCELADA
 model/enums/StatusParticipacao.java                CONVIDADO, CONFIRMADO, RECUSADO, LISTA_DE_ESPERA
 
@@ -73,7 +73,7 @@ controller/PeladaController.java
 | `localNome` | String(120) | nome da quadra/campo |
 | `endereco` | String(200) | endereço |
 | `cidade` / `estado` | String(80) / String(2) | usados no filtro de busca |
-| `tipoCampo` | enum `TipoCampo` | society, futsal, campo… |
+| `tipoCampo` | enum `TipoCampo` | futsal ou society |
 | `maxParticipantes` | Integer | 2 a 50 |
 | `valorPorJogador` | BigDecimal(10,2) | opcional (pelada de graça) |
 | `status` | enum `StatusPelada` | nasce `AGENDADA` |
@@ -285,7 +285,7 @@ GET /api/peladas?organizadorId=1           → "peladas que eu organizo"
 | `GET` | `/api/usuarios` | **Paginado**, filtros: `posicao`, `busca` (nome ou nickname), `nacionalidade` |
 
 ```
-GET /api/usuarios?busca=pel&posicao=ATACANTE&page=0&size=10&sort=nomeCompleto,asc
+GET /api/usuarios?busca=pel&posicao=PIVO&page=0&size=10&sort=nomeCompleto,asc
 ```
 
 ---
@@ -325,7 +325,7 @@ Resposta `201` (trecho):
   "maxParticipantes": 14,
   "totalConfirmados": 1,
   "vagasRestantes": 13,
-  "organizador": { "id": 1, "nickname": "jog1", "posicaoDescricao": "Atacante" },
+  "organizador": { "id": 1, "nickname": "jog1", "posicaoDescricao": "Pivô" },
   "participantes": [
     { "participacaoId": 1, "status": "CONFIRMADO", "usuario": { "nickname": "jog1" } }
   ]
@@ -369,7 +369,7 @@ Exemplo:
 {
   "status": 400,
   "erro": "Parâmetro inválido",
-  "mensagem": "O parâmetro 'tipoCampo' recebeu um valor inválido: PELADAO. Valores aceitos: CAMPO, SOCIETY, FUTSAL, QUADRA, AREIA"
+  "mensagem": "O parâmetro 'tipoCampo' recebeu um valor inválido: PELADAO. Valores aceitos: FUTSAL, SOCIETY"
 }
 ```
 

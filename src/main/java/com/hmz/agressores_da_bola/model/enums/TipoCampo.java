@@ -2,11 +2,8 @@ package com.hmz.agressores_da_bola.model.enums;
 
 public enum TipoCampo {
 
-    CAMPO("Campo de futebol"),
-    SOCIETY("Society"),
     FUTSAL("Futsal"),
-    QUADRA("Quadra poliesportiva"),
-    AREIA("Futebol de areia");
+    SOCIETY("Society");
 
     private final String descricao;
 

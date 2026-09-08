@@ -46,22 +46,22 @@ class EstatisticaPartidaRepositoryTest {
 
     @BeforeEach
     void prepararPelada() {
-        Usuario organizador = persistirUsuario("org", Posicao.MEIA);
+        Usuario organizador = persistirUsuario("org", Posicao.ALA);
         pelada = persistirPelada(organizador);
     }
 
     @Test
     @DisplayName("soma as estatísticas por jogador e permite calcular a pontuação")
     void deveSomarPorJogador() {
-        Usuario artilheiro = persistirUsuario("artilheiro", Posicao.ATACANTE);
+        Usuario artilheiro = persistirUsuario("artilheiro", Posicao.PIVO);
         Usuario goleiro = persistirUsuario("paredao", Posicao.GOLEIRO);
 
         // O artilheiro joga duas peladas para provar que a soma acumula.
-        persistirEstatistica(artilheiro, Posicao.ATACANTE, 2, 1, 3, 0, 0);
+        persistirEstatistica(artilheiro, Posicao.PIVO, 2, 1, 3, 0, 0);
         persistirEstatistica(goleiro, Posicao.GOLEIRO, 0, 1, 0, 8, 3);
 
         Pelada outraPelada = persistirPelada(artilheiro);
-        persistirEstatisticaEm(outraPelada, artilheiro, Posicao.ATACANTE, 1, 0, 2, 0, 0);
+        persistirEstatisticaEm(outraPelada, artilheiro, Posicao.PIVO, 1, 0, 2, 0, 0);
 
         em.flush();
         em.clear();
@@ -92,11 +92,11 @@ class EstatisticaPartidaRepositoryTest {
     @Test
     @DisplayName("restringe a soma a uma pelada quando o filtro é informado")
     void deveFiltrarPorPelada() {
-        Usuario jogador = persistirUsuario("filtrado", Posicao.ATACANTE);
-        persistirEstatistica(jogador, Posicao.ATACANTE, 2, 0, 0, 0, 0);
+        Usuario jogador = persistirUsuario("filtrado", Posicao.PIVO);
+        persistirEstatistica(jogador, Posicao.PIVO, 2, 0, 0, 0, 0);
 
         Pelada outraPelada = persistirPelada(jogador);
-        persistirEstatisticaEm(outraPelada, jogador, Posicao.ATACANTE, 5, 0, 0, 0, 0);
+        persistirEstatisticaEm(outraPelada, jogador, Posicao.PIVO, 5, 0, 0, 0, 0);
 
         em.flush();
         em.clear();
@@ -110,8 +110,8 @@ class EstatisticaPartidaRepositoryTest {
     @Test
     @DisplayName("apaga a súmula quando ela é solta da participação")
     void deveApagarASumulaOrfa() {
-        Usuario jogador = persistirUsuario("orfao", Posicao.VOLANTE);
-        persistirEstatistica(jogador, Posicao.VOLANTE, 1, 0, 4, 0, 0);
+        Usuario jogador = persistirUsuario("orfao", Posicao.FIXO);
+        persistirEstatistica(jogador, Posicao.FIXO, 1, 0, 4, 0, 0);
         em.flush();
         em.clear();
 

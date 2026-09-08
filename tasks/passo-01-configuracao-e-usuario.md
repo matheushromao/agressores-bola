@@ -61,7 +61,7 @@ com.hmz.agressores_da_bola
 ├── repository/UsuarioRepository        → JpaRepository
 ├── mapper/UsuarioMapper                → entidade ⇄ DTO
 ├── model/Usuario                       → entidade JPA
-├── model/enums/Posicao                 → posições em campo
+├── model/enums/Posicao                 → posições de futsal
 ├── dto/UsuarioRequest / UsuarioResponse
 └── exception/                          → erros de domínio + handler global
 ```
@@ -101,7 +101,7 @@ Tabela `tb_usuarios`.
 
 Detalhes de implementação:
 
-- `@Enumerated(EnumType.STRING)` grava `"ATACANTE"` no banco em vez do índice
+- `@Enumerated(EnumType.STRING)` grava `"PIVO"` no banco em vez do índice
   numérico — se a ordem do enum mudar, os dados continuam corretos.
 - `equals`/`hashCode` baseados apenas no `id`, com `hashCode` fixo por classe.
   É o padrão recomendado para entidades JPA: evita que um objeto "suma" de um
@@ -109,9 +109,10 @@ Detalhes de implementação:
 
 ### Enum `Posicao`
 
-`GOLEIRO`, `ZAGUEIRO`, `LATERAL_DIREITO`, `LATERAL_ESQUERDO`, `VOLANTE`,
-`MEIA`, `PONTA_DIREITA`, `PONTA_ESQUERDA`, `ATACANTE` — cada um com uma
-`descricao` legível, devolvida na API como `posicaoDescricao`.
+`GOLEIRO`, `ALA`, `FIXO`, `PIVO`, `AMADOR` — as posições de futsal, que é
+como o pessoal joga também no society. Cada uma tem uma `descricao` legível,
+devolvida na API como `posicaoDescricao`. Posições de futebol de campo ficam
+para uma atualização futura, se o app passar a cobrir essa modalidade.
 
 ---
 

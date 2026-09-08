@@ -150,8 +150,8 @@ uma linha diferente em cada pelada.
 
 | Enum | Valores |
 |---|---|
-| `Posicao` | `GOLEIRO`, `ZAGUEIRO`, `LATERAL_DIREITO`, `LATERAL_ESQUERDO`, `VOLANTE`, `MEIA`, `PONTA_DIREITA`, `PONTA_ESQUERDA`, `ATACANTE` |
-| `TipoCampo` | `CAMPO`, `SOCIETY`, `FUTSAL`, `QUADRA`, `AREIA` |
+| `Posicao` | `GOLEIRO`, `ALA`, `FIXO`, `PIVO`, `AMADOR` |
+| `TipoCampo` | `FUTSAL`, `SOCIETY` |
 | `StatusPelada` | `AGENDADA`, `CONFIRMADA`, `EM_ANDAMENTO`, `FINALIZADA`, `CANCELADA` |
 | `StatusParticipacao` | `CONVIDADO`, `CONFIRMADO`, `RECUSADO`, `LISTA_DE_ESPERA` |
 | `AtributoPontuacao` | `GOL`, `DEFESA_DIFICIL`, `ASSISTENCIA`, `DEFESA`, `DESARME` |
@@ -293,11 +293,11 @@ Content-Type: application/json
 {
   "nomeCompleto": "Matheus Romão",
   "nickname": "matheus",
-  "descricao": "Meia central, canhoto",
+  "descricao": "Ala pela esquerda, canhoto",
   "numeroCelular": "(11) 91234-5678",
   "email": "matheus@exemplo.com",
   "idade": 27,
-  "posicao": "MEIA",
+  "posicao": "ALA",
   "nacionalidade": "Brasileira",
   "estrelas": 4.0
 }
@@ -451,7 +451,7 @@ GET /api/ranking/destaques?limite=3
 [
   {
     "posicao": 1,
-    "jogador": { "id": 7, "nickname": "matheus", "posicao": "MEIA", "estrelas": 4.0 },
+    "jogador": { "id": 7, "nickname": "matheus", "posicao": "ALA", "estrelas": 4.0 },
     "jogos": 5,
     "gols": 8,
     "assistencias": 6,
