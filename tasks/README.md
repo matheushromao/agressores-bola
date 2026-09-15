@@ -11,6 +11,7 @@ arquivo aqui, descrevendo **o que foi feito**, **por quê** e **como usar**.
 | 2 | [passo-02-pelada-e-paginacao.md](passo-02-pelada-e-paginacao.md) | Entidade `Pelada`, escalação de participantes, paginação no backend (`Pageable`) |
 | 3 | [passo-03-estatisticas-ranking-e-sorteio.md](passo-03-estatisticas-ranking-e-sorteio.md) | Súmula por jogador, tabela de pontuação, rankings agregados e sorteio de times equilibrado por estrelas |
 | 4 | [passo-04-auditoria-de-camadas-e-testes-de-endpoints.md](passo-04-auditoria-de-camadas-e-testes-de-endpoints.md) | Auditoria de SOLID/MVC camada a camada, exercício de todos os endpoints via HTTP (132 verificações) e roteiro dos próximos passos |
+| 5 | [passo-05-infraestrutura-seguranca-e-frontend.md](passo-05-infraestrutura-seguranca-e-frontend.md) | Roteiro priorizado: Flyway e perfis, Docker Compose e Testcontainers, Spring Security com JWT, OpenAPI e, por fim, o frontend |
 
 ## Sobre o projeto
 
@@ -47,9 +48,8 @@ tudo entra e sai como DTO.
 ## Como rodar
 
 ```bash
-# 1. Configure o banco (o application.yaml está no .gitignore)
-cp src/main/resources/application-example.yaml src/main/resources/application.yaml
-# edite usuário e senha do MySQL
+# 1. Informe as credenciais do MySQL num .env na raiz (ignorado pelo Git)
+printf 'DB_USERNAME=root\nDB_PASSWORD=sua_senha\n' > .env
 
 # 2. Suba a aplicação
 ./mvnw spring-boot:run

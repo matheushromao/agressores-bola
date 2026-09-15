@@ -1,0 +1,6 @@
+# Máquina local.
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/agressores_db?createDatabaseIfNotExist=true
+  jpa:
+    show-sql: true

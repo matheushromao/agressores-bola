@@ -4,14 +4,10 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
-### Configuração local / credenciais (NÃO versionar) ###
-src/main/resources/application.yaml
-src/main/resources/application.yml
-src/main/resources/application*.yaml
-src/main/resources/application*.yml
-src/main/resources/application*.properties
-!src/main/resources/application-example.yaml
+### Credenciais locais (NÃO versionar) ###
+# Os application*.yaml são versionados e só leem ${DB_USERNAME}/${DB_PASSWORD}.
 .env
+src/main/resources/application-local.yaml
 
 ### STS ###
 .apt_generated

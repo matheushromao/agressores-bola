@@ -1,0 +1,29 @@
+# Configuração comum a todos os perfis. Este arquivo é versionado e por isso
+# NUNCA contém credenciais: elas vêm de variáveis de ambiente ou de um .env
+# na raiz do projeto (ignorado pelo Git).
+spring:
+  application:
+    name: agressores-da-bola
+  config:
+    import: optional:file:.env[.properties]
+  profiles:
+    # Vale quando nenhum perfil é informado; SPRING_PROFILES_ACTIVE sobrescreve
+    default: dev
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+  jpa:
+    hibernate:
+      # O schema pertence ao Flyway (db/migration). O Hibernate só confere se
+      # as entidades batem com o banco e recusa subir se houver divergência.
+      ddl-auto: validate
+  data:
+    web:
+      pageable:
+        # Tamanho usado quando o cliente não informa "size"
+        default-page-size: 10
+        # Teto de segurança: impede ?size=100000 derrubar a aplicação
+        max-page-size: 50
+        # A primeira página é a 0 (padrão do Spring Data)
+        one-indexed-parameters: false

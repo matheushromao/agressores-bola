@@ -166,30 +166,36 @@ uma linha diferente em cada pelada.
 - MySQL 8 em execução
 - Nenhuma instalação de Maven necessária — o projeto usa o wrapper
 
-### 1. Configuração local
+### 1. Perfis de configuração
 
-O arquivo `application.yaml` **não é versionado**. Crie o seu a partir do modelo:
+Os arquivos de configuração são versionados e **não contêm credenciais**:
 
-```bash
-cp src/main/resources/application-example.yaml src/main/resources/application.yaml
-```
-
-O modelo já lê as credenciais de variáveis de ambiente:
-
-```yaml
-spring:
-  datasource:
-    url: jdbc:mysql://localhost:3306/agressores-db?createDatabaseIfNotExist=true
-    username: ${DB_USERNAME:root}
-    password: ${DB_PASSWORD:senha_local}
-```
-
-### 2. Variáveis de ambiente
-
-| Variável | Descrição | Padrão |
+| Arquivo | Perfil | Uso |
 |---|---|---|
-| `DB_USERNAME` | Usuário do MySQL | `root` |
-| `DB_PASSWORD` | Senha do MySQL | *(sem padrão utilizável — defina)* |
+| `application.yaml` | todos | Configuração comum; `ddl-auto: validate`; perfil padrão `dev` |
+| `application-dev.yaml` | `dev` | Banco local `agressores_db`, `show-sql: true` |
+| `application-prod.yaml` | `prod` | URL do banco por `DB_URL`, sem criação automática |
+| `src/test/resources/application-test.yaml` | `test` | Banco local separado `agressores_test` |
+
+Para trocar de perfil: `SPRING_PROFILES_ACTIVE=prod`.
+
+### 2. Credenciais
+
+| Variável | Descrição | Obrigatória |
+|---|---|---|
+| `DB_USERNAME` | Usuário do MySQL | sim |
+| `DB_PASSWORD` | Senha do MySQL | sim |
+| `DB_URL` | URL JDBC completa | só no perfil `prod` |
+
+O jeito mais simples em desenvolvimento é um `.env` na raiz do projeto, que a aplicação
+importa automaticamente e que está no `.gitignore`:
+
+```properties
+DB_USERNAME=root
+DB_PASSWORD=sua_senha
+```
+
+Variáveis de ambiente de verdade têm precedência sobre o `.env`:
 
 ```bash
 # Linux / macOS
@@ -203,8 +209,8 @@ $env:DB_USERNAME = "seu_usuario"
 $env:DB_PASSWORD = "sua_senha"
 ```
 
-> Definir a senha por variável de ambiente mantém a credencial fora do código e fora do
-> histórico do Git. Não substitua o `${DB_PASSWORD}` por um valor literal no arquivo.
+> Não existe valor padrão para a senha: sem ela a aplicação recusa subir. Nunca escreva
+> uma credencial literal em um `application*.yaml` — esses arquivos vão para o Git.
 
 ### 3. Execução
 
@@ -213,8 +219,19 @@ $env:DB_PASSWORD = "sua_senha"
 .\mvnw.cmd spring-boot:run      # Windows
 ```
 
-A API sobe em `http://localhost:8080`. O banco `agressores-db` é criado automaticamente
-na primeira conexão (`createDatabaseIfNotExist=true`) e o schema é gerado pelo Hibernate.
+A API sobe em `http://localhost:8080`. O banco `agressores_db` é criado automaticamente
+na primeira conexão (`createDatabaseIfNotExist=true`) e o schema é criado pelo **Flyway**
+a partir de `src/main/resources/db/migration`.
+
+### Migrations
+
+O schema pertence ao Flyway; o Hibernate apenas **valida** (`ddl-auto: validate`) e recusa
+subir se entidade e banco divergirem. Toda mudança de schema é um novo arquivo
+`V{n}__descricao.sql` — nunca edite uma migration já aplicada.
+
+Colunas de enum são `ENUM(...)` nativas no MySQL. Para renomear ou remover valores, siga
+três passos na mesma migration: ampliar a lista para o **superconjunto** dos valores
+antigos e novos, fazer o **de-para** com `UPDATE` e só então aplicar a **lista final**.
 
 ### 4. Build e testes
 
@@ -231,8 +248,9 @@ na primeira conexão (`createDatabaseIfNotExist=true`) e o schema é gerado pelo
 
 | Prática | Implementação |
 |---|---|
-| **Credenciais fora do versionamento** | `application*.yaml` está no `.gitignore`; só o `application-example.yaml` é rastreado |
-| **Credenciais fora do código** | Configuração via `${DB_USERNAME}` / `${DB_PASSWORD}` |
+| **Credenciais fora do versionamento** | Os `application*.yaml` versionados só referenciam variáveis; o `.env` local está no `.gitignore` |
+| **Credenciais fora do código** | Configuração via `${DB_USERNAME}` / `${DB_PASSWORD}`, sem valor padrão |
+| **Schema versionado** | Migrations Flyway e `ddl-auto: validate` — o Hibernate nunca altera o banco |
 | **Sem vazamento de dados pessoais** | `UsuarioResumoResponse` omite e-mail e telefone quando o jogador aparece dentro de outro recurso |
 | **Entidades nunca expostas** | Todo request e response passa por DTO, o que impede *mass assignment* e vazamento de relacionamentos |
 | **Validação na borda** | Bean Validation em todo `@RequestBody`, com validação de campos cruzados via `@AssertTrue` |
@@ -251,15 +269,12 @@ exposta publicamente.**
 - **Sem HTTPS.** O tráfego roda em texto claro em desenvolvimento.
 - **Sem rate limiting** nem proteção contra abuso automatizado.
 - **Sem CORS configurado** — a política padrão do Spring se aplica.
-- **`ddl-auto: update`** é conveniente em desenvolvimento, mas não deve ir para produção:
-  ele altera o schema automaticamente e não versiona a mudança. Migrations com Flyway ou
-  Liquibase são o caminho.
-- **`show-sql: true`** joga as consultas no log; desligue fora de desenvolvimento.
+- **`show-sql: true`** joga as consultas no log; por isso fica só no perfil `dev`.
 
 ### Recomendações operacionais
 
-- Nunca commite `application.yaml`. Antes de qualquer `git add`, confira com
-  `git status --short`.
+- Nunca commite o `.env` nem escreva credencial literal em `application*.yaml`. Antes de
+  qualquer `git add`, confira com `git status --short`.
 - Se uma credencial chegou a ser commitada alguma vez, **rotacione-a**: remover o arquivo
   em um commit posterior não apaga o valor do histórico, e o objeto pode continuar
   acessível pela SHA antiga.
@@ -692,8 +707,9 @@ ou detalhe de schema.
 ./mvnw test
 ```
 
-> A suíte exige o MySQL em execução e o `application.yaml` configurado: dois dos três
-> testes sobem contexto Spring e conectam no banco de desenvolvimento.
+> A suíte exige o MySQL em execução e as credenciais configuradas: dois dos três testes
+> sobem contexto Spring com o perfil `test` e conectam no banco `agressores_test`, onde o
+> Flyway aplica as migrations antes — ou seja, a suíte também valida os scripts.
 
 | Suíte | Cobre |
 |---|---|
@@ -702,7 +718,7 @@ ou detalhe de schema.
 | `AgressoresDaBolaApplicationTests` | Carga do contexto, que valida os mapeamentos JPA e o parsing das consultas JPQL |
 
 `EstatisticaPartidaRepositoryTest` usa `@DataJpaTest` apontado para o MySQL de
-desenvolvimento (`@AutoConfigureTestDatabase(replace = NONE)`) — é a única forma de
+teste (`@AutoConfigureTestDatabase(replace = NONE)`) — é a única forma de
 garantir que o `group by` e a expressão de construtor realmente executam, e não só
 compilam. A transação é desfeita ao fim de cada teste, então nada sobra na base.
 
@@ -711,11 +727,11 @@ compilam. A transação é desfeita ao fim de cada teste, então nada sobra na b
 ## Roadmap
 
 - [ ] Autenticação e autorização com Spring Security e JWT
-- [ ] Migrations versionadas com Flyway, substituindo o `ddl-auto: update`
+- [x] Migrations versionadas com Flyway, substituindo o `ddl-auto: update`
 - [ ] Documentação interativa com OpenAPI / Swagger UI
 - [ ] Persistência opcional do sorteio, para manter o histórico de times de cada pelada
 - [ ] Cobertura de testes nos services e nos controllers
-- [ ] Perfis de configuração (`dev`, `test`, `prod`) com `application-{perfil}.yaml`
+- [x] Perfis de configuração (`dev`, `test`, `prod`) com `application-{perfil}.yaml`
 - [ ] Containerização com Docker Compose (aplicação + MySQL)
 
 ---

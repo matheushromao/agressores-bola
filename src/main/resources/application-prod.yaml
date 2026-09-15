@@ -1,0 +1,9 @@
+# Produção: tudo vem do ambiente e nada é criado automaticamente.
+spring:
+  datasource:
+    url: ${DB_URL}
+  jpa:
+    show-sql: false
+  flyway:
+    # Impede que um "flyway clean" acidental apague a base
+    clean-disabled: true
