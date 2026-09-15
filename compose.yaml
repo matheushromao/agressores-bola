@@ -1,0 +1,41 @@
+# Sobe a aplicação e o MySQL: docker compose up --build
+# Lê DB_PASSWORD (e opcionalmente DB_ROOT_PASSWORD) do .env na raiz.
+services:
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_DATABASE: agressores_db
+      # Usuário dedicado da aplicação; a imagem não aceita MYSQL_USER=root
+      MYSQL_USER: agressores
+      MYSQL_PASSWORD: ${DB_PASSWORD:?defina DB_PASSWORD no .env}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-${DB_PASSWORD}}
+    ports:
+      # Porta do host configurável (DB_HOST_PORT no .env); o padrão 3308 evita
+      # conflito com um MySQL local na 3306 e com outros contêineres na 3307
+      - "${DB_HOST_PORT:-3308}:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      # Via TCP: o servidor temporário da inicialização só escuta no socket,
+      # então o banco só fica "healthy" quando o servidor definitivo sobe
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -p\"$$MYSQL_ROOT_PASSWORD\" --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+
+  app:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/agressores_db
+      DB_USERNAME: agressores
+      DB_PASSWORD: ${DB_PASSWORD:?defina DB_PASSWORD no .env}
+    ports:
+      - "8080:8080"
+
+volumes:
+  mysql-data:

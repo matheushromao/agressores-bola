@@ -1,5 +1,6 @@
 package com.hmz.agressores_da_bola.repository;
 
+import com.hmz.agressores_da_bola.TestcontainersConfiguration;
 import com.hmz.agressores_da_bola.model.EstatisticaPartida;
 import com.hmz.agressores_da_bola.model.ParticipacaoPelada;
 import com.hmz.agressores_da_bola.model.Pelada;
@@ -17,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.math.BigDecimal;
@@ -35,6 +37,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@Import(TestcontainersConfiguration.class)
 @ActiveProfiles("test")
 class EstatisticaPartidaRepositoryTest {
 

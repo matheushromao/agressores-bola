@@ -51,10 +51,12 @@ tudo entra e sai como DTO.
 # 1. Informe as credenciais do MySQL num .env na raiz (ignorado pelo Git)
 printf 'DB_USERNAME=root\nDB_PASSWORD=sua_senha\n' > .env
 
-# 2. Suba a aplicação
+# 2. Suba a aplicação e um MySQL próprio (só exige Docker)
+docker compose up --build
+#    ...ou rode fora do Docker, contra o MySQL local
 ./mvnw spring-boot:run
 
-# 3. Rode a suíte de testes (exige o MySQL no ar)
+# 3. Rode a suíte de testes (exige o Docker no ar; o MySQL vem do Testcontainers)
 ./mvnw test
 ```
 

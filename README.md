@@ -162,8 +162,8 @@ uma linha diferente em cada pelada.
 
 ### Pré-requisitos
 
-- JDK 25
-- MySQL 8 em execução
+- Docker (Docker Desktop no Windows/macOS) — para rodar os testes e para subir tudo com Compose
+- JDK 25 e MySQL 8 em execução — só para rodar a aplicação fora do Docker
 - Nenhuma instalação de Maven necessária — o projeto usa o wrapper
 
 ### 1. Perfis de configuração
@@ -175,7 +175,7 @@ Os arquivos de configuração são versionados e **não contêm credenciais**:
 | `application.yaml` | todos | Configuração comum; `ddl-auto: validate`; perfil padrão `dev` |
 | `application-dev.yaml` | `dev` | Banco local `agressores_db`, `show-sql: true` |
 | `application-prod.yaml` | `prod` | URL do banco por `DB_URL`, sem criação automática |
-| `src/test/resources/application-test.yaml` | `test` | Banco local separado `agressores_test` |
+| `src/test/resources/application-test.yaml` | `test` | MySQL descartável via Testcontainers |
 
 Para trocar de perfil: `SPRING_PROFILES_ACTIVE=prod`.
 
@@ -222,6 +222,23 @@ $env:DB_PASSWORD = "sua_senha"
 A API sobe em `http://localhost:8080`. O banco `agressores_db` é criado automaticamente
 na primeira conexão (`createDatabaseIfNotExist=true`) e o schema é criado pelo **Flyway**
 a partir de `src/main/resources/db/migration`.
+
+### Com Docker
+
+Com `DB_PASSWORD` definido no `.env`, um comando sobe a aplicação e um MySQL 8 próprio —
+sem JDK nem MySQL instalados:
+
+```bash
+docker compose up --build
+```
+
+| Serviço | Endereço | Observação |
+|---|---|---|
+| API | `http://localhost:8080` | Perfil `dev`, espera o banco ficar saudável antes de subir |
+| MySQL | `localhost:3308` | Usuário `agressores`, senha `DB_PASSWORD`; porta do host configurável com `DB_HOST_PORT` no `.env` |
+
+Os dados ficam no volume `mysql-data`. `docker compose down` para os contêineres e mantém
+os dados; `docker compose down -v` apaga o volume junto.
 
 ### Migrations
 
@@ -707,9 +724,10 @@ ou detalhe de schema.
 ./mvnw test
 ```
 
-> A suíte exige o MySQL em execução e as credenciais configuradas: dois dos três testes
-> sobem contexto Spring com o perfil `test` e conectam no banco `agressores_test`, onde o
-> Flyway aplica as migrations antes — ou seja, a suíte também valida os scripts.
+> A suíte exige o **Docker em execução** e nada mais: dois dos três testes sobem contexto
+> Spring com o perfil `test` contra um MySQL 8 descartável do Testcontainers, onde o Flyway
+> aplica as migrations antes — ou seja, a suíte também valida os scripts. Não é preciso
+> MySQL instalado nem `.env`.
 
 | Suíte | Cobre |
 |---|---|
@@ -717,8 +735,8 @@ ou detalhe de schema.
 | `EstatisticaPartidaRepositoryTest` | Agregação do ranking contra o banco real, filtro por pelada e remoção da súmula órfã |
 | `AgressoresDaBolaApplicationTests` | Carga do contexto, que valida os mapeamentos JPA e o parsing das consultas JPQL |
 
-`EstatisticaPartidaRepositoryTest` usa `@DataJpaTest` apontado para o MySQL de
-teste (`@AutoConfigureTestDatabase(replace = NONE)`) — é a única forma de
+`EstatisticaPartidaRepositoryTest` usa `@DataJpaTest` apontado para o MySQL do
+contêiner (`@AutoConfigureTestDatabase(replace = NONE)` e `TestcontainersConfiguration`) — é a única forma de
 garantir que o `group by` e a expressão de construtor realmente executam, e não só
 compilam. A transação é desfeita ao fim de cada teste, então nada sobra na base.
 
@@ -732,7 +750,7 @@ compilam. A transação é desfeita ao fim de cada teste, então nada sobra na b
 - [ ] Persistência opcional do sorteio, para manter o histórico de times de cada pelada
 - [ ] Cobertura de testes nos services e nos controllers
 - [x] Perfis de configuração (`dev`, `test`, `prod`) com `application-{perfil}.yaml`
-- [ ] Containerização com Docker Compose (aplicação + MySQL)
+- [x] Containerização com Docker Compose (aplicação + MySQL)
 
 ---
 

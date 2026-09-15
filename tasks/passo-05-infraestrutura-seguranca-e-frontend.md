@@ -182,31 +182,40 @@ rodar" no README, e some o problema de qual serviço MySQL está ligado.
 </dependency>
 <dependency>
     <groupId>org.testcontainers</groupId>
-    <artifactId>mysql</artifactId>
-    <scope>test</scope>
-</dependency>
-<dependency>
-    <groupId>org.testcontainers</groupId>
-    <artifactId>junit-jupiter</artifactId>
+    <artifactId>testcontainers-mysql</artifactId>
     <scope>test</scope>
 </dependency>
 ```
+
+⚠️ **O Boot 4.1 traz o Testcontainers 2.x**, que renomeou os artefatos
+(`testcontainers-mysql`, não `mysql`) e moveu a classe para
+`org.testcontainers.mysql.MySQLContainer`, sem o genérico `<?>`.
 
 Com `@ServiceConnection`, o Spring Boot injeta sozinho URL, usuário e senha do
-contêiner — não é preciso `@DynamicPropertySource`:
+contêiner — não é preciso `@DynamicPropertySource`. Declarar o contêiner como
+bean numa `@TestConfiguration` permite que todos os testes com banco a importem:
 
 ```java
-@Testcontainers
+@TestConfiguration(proxyBeanMethods = false)
+public class TestcontainersConfiguration {
+
+    @Bean
+    @ServiceConnection
+    MySQLContainer mysqlContainer() {
+        return new MySQLContainer(DockerImageName.parse("mysql:8.0"));
+    }
+}
+
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = Replace.NONE)
-class EstatisticaPartidaRepositoryTest {
-
-    @Container
-    @ServiceConnection
-    static MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.0");
-    ...
-}
+@Import(TestcontainersConfiguration.class)
+@ActiveProfiles("test")
+class EstatisticaPartidaRepositoryTest { ... }
 ```
+
+No Compose, o MySQL fica exposto no host na **3308** por padrão
+(`DB_HOST_PORT` no `.env` troca), para conviver com um MySQL local na 3306 e
+com outros contêineres que já usem a 3307.
 
 Ganhos: `./mvnw test` deixa de exigir MySQL instalado, o Flyway roda contra um
 banco descartável (o que **testa as migrations**, não só o código), e cada
@@ -323,10 +332,10 @@ Etapa 1 — Flyway e perfis
   [x] credenciais em variável de ambiente / .env
 
 Etapa 2 — Docker
-  [ ] Dockerfile multi-stage
-  [ ] compose.yaml (app + mysql, healthcheck, volume)
-  [ ] Testcontainers com @ServiceConnection
-  [ ] ./mvnw test passando sem MySQL instalado
+  [x] Dockerfile multi-stage
+  [x] compose.yaml (app + mysql, healthcheck, volume)
+  [x] Testcontainers com @ServiceConnection
+  [x] ./mvnw test passando sem MySQL instalado
 
 Etapa 3 — Segurança
   [ ] Spring Security + JWT, senha com BCrypt

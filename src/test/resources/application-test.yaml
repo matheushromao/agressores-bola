@@ -1,8 +1,7 @@
-# Testes: banco separado do de desenvolvimento. O Flyway aplica as migrations
-# nele a cada execução, então a suíte também valida os scripts de db/migration.
-# Provisório até a Etapa 2 trocar o MySQL local por Testcontainers.
+# Testes: o banco é um MySQL descartável do Testcontainers
+# (TestcontainersConfiguration), cuja conexão é injetada via @ServiceConnection.
+# O Flyway aplica as migrations nele a cada execução, então a suíte também
+# valida os scripts de db/migration.
 spring:
-  datasource:
-    url: jdbc:mysql://localhost:3306/agressores_test?createDatabaseIfNotExist=true
   jpa:
     show-sql: false
