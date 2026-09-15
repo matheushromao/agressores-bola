@@ -5,9 +5,10 @@ import com.hmz.agressores_da_bola.dto.SorteioResponse;
 
 /**
  * Contrato do sorteio de times. A operação não altera nada no banco: devolve
- * uma sugestão de divisão que o organizador aceita ou refaz.
+ * uma sugestão de divisão que o organizador aceita ou refaz. Só o
+ * organizador da pelada pode sortear.
  */
 public interface SorteioService {
 
-    SorteioResponse sortear(Long peladaId, SorteioRequest request);
+    SorteioResponse sortear(Long peladaId, SorteioRequest request, Long usuarioLogadoId);
 }

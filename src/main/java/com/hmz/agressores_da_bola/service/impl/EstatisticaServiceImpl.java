@@ -2,6 +2,7 @@ package com.hmz.agressores_da_bola.service.impl;
 
 import com.hmz.agressores_da_bola.dto.EstatisticaRequest;
 import com.hmz.agressores_da_bola.dto.EstatisticaResponse;
+import com.hmz.agressores_da_bola.exception.AcessoNegadoException;
 import com.hmz.agressores_da_bola.exception.RecursoNaoEncontradoException;
 import com.hmz.agressores_da_bola.exception.RegraDeNegocioException;
 import com.hmz.agressores_da_bola.mapper.EstatisticaMapper;
@@ -33,8 +34,10 @@ public class EstatisticaServiceImpl implements EstatisticaService {
 
     @Override
     @Transactional
-    public EstatisticaResponse registrar(Long peladaId, Long usuarioId, EstatisticaRequest request) {
+    public EstatisticaResponse registrar(Long peladaId, Long usuarioId, EstatisticaRequest request,
+                                         Long usuarioLogadoId) {
         ParticipacaoPelada participacao = obterParticipacao(peladaId, usuarioId);
+        exigirOrganizador(participacao.getPelada(), usuarioLogadoId);
 
         validarPeladaComJogo(participacao.getPelada());
         validarJogadorConfirmado(participacao);
@@ -85,8 +88,9 @@ public class EstatisticaServiceImpl implements EstatisticaService {
 
     @Override
     @Transactional
-    public void remover(Long peladaId, Long usuarioId) {
+    public void remover(Long peladaId, Long usuarioId, Long usuarioLogadoId) {
         ParticipacaoPelada participacao = obterParticipacao(peladaId, usuarioId);
+        exigirOrganizador(participacao.getPelada(), usuarioLogadoId);
 
         if (estatisticaRepository.findByParticipacaoId(participacao.getId()).isEmpty()) {
             throw new RecursoNaoEncontradoException(
@@ -134,6 +138,12 @@ public class EstatisticaServiceImpl implements EstatisticaService {
     /* ------------------------------------------------------------------
      * Regras de negócio
      * ------------------------------------------------------------------ */
+
+    private void exigirOrganizador(Pelada pelada, Long usuarioLogadoId) {
+        if (!pelada.organizadaPor(usuarioLogadoId)) {
+            throw new AcessoNegadoException("Só o organizador pode lançar ou apagar a súmula desta pelada");
+        }
+    }
 
     private Posicao posicaoJogada(ParticipacaoPelada participacao, EstatisticaRequest request) {
         return request.posicaoJogada() != null

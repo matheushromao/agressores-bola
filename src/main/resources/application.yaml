@@ -27,3 +27,13 @@ spring:
         max-page-size: 50
         # A primeira página é a 0 (padrão do Spring Data)
         one-indexed-parameters: false
+
+app:
+  jwt:
+    # Segredo HMAC do token (HS256): pelo menos 32 bytes, sem valor padrão.
+    # Gere com: openssl rand -base64 48
+    secret: ${JWT_SECRET}
+    expiracao: PT2H
+  cors:
+    # Origens do frontend autorizadas, separadas por vírgula
+    origens: ${CORS_ORIGENS:http://localhost:5173}

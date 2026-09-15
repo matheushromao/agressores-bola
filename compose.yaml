@@ -34,6 +34,7 @@ services:
       SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/agressores_db
       DB_USERNAME: agressores
       DB_PASSWORD: ${DB_PASSWORD:?defina DB_PASSWORD no .env}
+      JWT_SECRET: ${JWT_SECRET:?defina JWT_SECRET no .env}
     ports:
       - "8080:8080"
 

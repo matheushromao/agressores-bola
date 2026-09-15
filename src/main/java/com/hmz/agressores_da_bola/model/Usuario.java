@@ -44,6 +44,13 @@ public class Usuario {
     @Column(nullable = false, unique = true, length = 150)
     private String email;
 
+    /**
+     * Hash da senha gerado pelo {@code PasswordEncoder} (BCrypt). Nunca é
+     * exposto em DTO nem aceito na edição de perfil.
+     */
+    @Column(nullable = false, length = 100)
+    private String senha;
+
     @Column(nullable = false)
     private Integer idade;
 

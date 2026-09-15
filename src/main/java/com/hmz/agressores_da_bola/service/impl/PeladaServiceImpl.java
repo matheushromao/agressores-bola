@@ -7,6 +7,7 @@ import com.hmz.agressores_da_bola.dto.PeladaFiltro;
 import com.hmz.agressores_da_bola.dto.PeladaRequest;
 import com.hmz.agressores_da_bola.dto.PeladaResponse;
 import com.hmz.agressores_da_bola.dto.PeladaResumoResponse;
+import com.hmz.agressores_da_bola.exception.AcessoNegadoException;
 import com.hmz.agressores_da_bola.exception.RecursoNaoEncontradoException;
 import com.hmz.agressores_da_bola.exception.RegraDeNegocioException;
 import com.hmz.agressores_da_bola.mapper.PeladaMapper;
@@ -46,8 +47,8 @@ public class PeladaServiceImpl implements PeladaService {
 
     @Override
     @Transactional
-    public PeladaResponse criar(PeladaRequest request) {
-        Usuario organizador = obterUsuario(request.organizadorId());
+    public PeladaResponse criar(PeladaRequest request, Long usuarioLogadoId) {
+        Usuario organizador = obterUsuario(usuarioLogadoId);
 
         validarInicioNoFuturo(request);
         validarAgendaDoOrganizador(organizador.getId(), request);
@@ -90,12 +91,12 @@ public class PeladaServiceImpl implements PeladaService {
 
     @Override
     @Transactional
-    public PeladaResponse atualizar(Long id, PeladaRequest request) {
+    public PeladaResponse atualizar(Long id, PeladaRequest request, Long usuarioLogadoId) {
         Pelada pelada = obterPeladaComParticipantes(id);
+        exigirOrganizador(pelada, usuarioLogadoId);
         validarPeladaAberta(pelada);
 
         validarInicioNoFuturo(request);
-        validarTrocaDeOrganizadorNaoSolicitada(pelada, request);
         validarLimiteAcimaDosConfirmados(pelada, request.maxParticipantes());
 
         if (mudouAgenda(pelada, request)) {
@@ -108,8 +109,9 @@ public class PeladaServiceImpl implements PeladaService {
 
     @Override
     @Transactional
-    public PeladaResponse alterarStatus(Long id, StatusPelada novoStatus) {
+    public PeladaResponse alterarStatus(Long id, StatusPelada novoStatus, Long usuarioLogadoId) {
         Pelada pelada = obterPeladaComParticipantes(id);
+        exigirOrganizador(pelada, usuarioLogadoId);
         validarTransicaoDeStatus(pelada, novoStatus);
 
         pelada.setStatus(novoStatus);
@@ -118,8 +120,10 @@ public class PeladaServiceImpl implements PeladaService {
 
     @Override
     @Transactional
-    public void deletar(Long id) {
-        peladaRepository.delete(obterPelada(id));
+    public void deletar(Long id, Long usuarioLogadoId) {
+        Pelada pelada = obterPelada(id);
+        exigirOrganizador(pelada, usuarioLogadoId);
+        peladaRepository.delete(pelada);
     }
 
     /* ------------------------------------------------------------------
@@ -138,8 +142,13 @@ public class PeladaServiceImpl implements PeladaService {
 
     @Override
     @Transactional
-    public ParticipanteResponse adicionarParticipante(Long peladaId, ParticipacaoRequest request) {
+    public ParticipanteResponse adicionarParticipante(Long peladaId, ParticipacaoRequest request,
+                                                      Long usuarioLogadoId) {
         Pelada pelada = obterPeladaComParticipantes(peladaId);
+        if (!pelada.organizadaPor(usuarioLogadoId) && !request.usuarioId().equals(usuarioLogadoId)) {
+            throw new AcessoNegadoException(
+                    "Só o organizador pode incluir outros jogadores. Para entrar, informe o seu próprio usuarioId");
+        }
         validarPeladaAberta(pelada);
 
         Usuario usuario = obterUsuario(request.usuarioId());
@@ -169,8 +178,10 @@ public class PeladaServiceImpl implements PeladaService {
 
     @Override
     @Transactional
-    public ParticipanteResponse alterarStatusParticipacao(Long peladaId, Long usuarioId, StatusParticipacao novoStatus) {
+    public ParticipanteResponse alterarStatusParticipacao(Long peladaId, Long usuarioId, StatusParticipacao novoStatus,
+                                                          Long usuarioLogadoId) {
         Pelada pelada = obterPeladaComParticipantes(peladaId);
+        exigirOrganizadorOuProprioJogador(pelada, usuarioId, usuarioLogadoId);
         validarPeladaAberta(pelada);
 
         ParticipacaoPelada participacao = obterParticipacao(pelada, usuarioId);
@@ -179,7 +190,7 @@ public class PeladaServiceImpl implements PeladaService {
             return peladaMapper.toParticipanteResponse(participacao);
         }
 
-        if (ehOrganizador(pelada, usuarioId) && !novoStatus.ocupaVaga()) {
+        if (pelada.organizadaPor(usuarioId) && !novoStatus.ocupaVaga()) {
             throw new RegraDeNegocioException(
                     "O organizador não pode sair da própria pelada. Cancele a pelada ou transfira a organização");
         }
@@ -198,11 +209,12 @@ public class PeladaServiceImpl implements PeladaService {
 
     @Override
     @Transactional
-    public void removerParticipante(Long peladaId, Long usuarioId) {
+    public void removerParticipante(Long peladaId, Long usuarioId, Long usuarioLogadoId) {
         Pelada pelada = obterPeladaComParticipantes(peladaId);
+        exigirOrganizadorOuProprioJogador(pelada, usuarioId, usuarioLogadoId);
         validarPeladaAberta(pelada);
 
-        if (ehOrganizador(pelada, usuarioId)) {
+        if (pelada.organizadaPor(usuarioId)) {
             throw new RegraDeNegocioException(
                     "O organizador não pode ser removido da própria pelada");
         }
@@ -253,9 +265,21 @@ public class PeladaServiceImpl implements PeladaService {
                         "O usuário de id " + usuarioId + " não participa da pelada de id " + pelada.getId()));
     }
 
-    private boolean ehOrganizador(Pelada pelada, Long usuarioId) {
-        return pelada.getOrganizador() != null
-                && pelada.getOrganizador().getId().equals(usuarioId);
+    /* ------------------------------------------------------------------
+     * Autorização: posse da pelada e da própria participação
+     * ------------------------------------------------------------------ */
+
+    private void exigirOrganizador(Pelada pelada, Long usuarioLogadoId) {
+        if (!pelada.organizadaPor(usuarioLogadoId)) {
+            throw new AcessoNegadoException("Só o organizador pode alterar esta pelada");
+        }
+    }
+
+    private void exigirOrganizadorOuProprioJogador(Pelada pelada, Long usuarioId, Long usuarioLogadoId) {
+        if (!pelada.organizadaPor(usuarioLogadoId) && !usuarioId.equals(usuarioLogadoId)) {
+            throw new AcessoNegadoException(
+                    "Só o organizador ou o próprio jogador podem alterar esta participação");
+        }
     }
 
     /* ------------------------------------------------------------------
@@ -281,13 +305,6 @@ public class PeladaServiceImpl implements PeladaService {
     private boolean mudouAgenda(Pelada pelada, PeladaRequest request) {
         return !pelada.getData().equals(request.data())
                 || !pelada.getHoraInicio().equals(request.horaInicio());
-    }
-
-    private void validarTrocaDeOrganizadorNaoSolicitada(Pelada pelada, PeladaRequest request) {
-        if (!pelada.getOrganizador().getId().equals(request.organizadorId())) {
-            throw new RegraDeNegocioException(
-                    "A troca de organizador não é permitida na atualização da pelada");
-        }
     }
 
     private void validarLimiteAcimaDosConfirmados(Pelada pelada, Integer novoLimite) {

@@ -12,7 +12,11 @@ import org.springframework.data.domain.Pageable;
  */
 public interface UsuarioService {
 
-    UsuarioResponse criar(UsuarioRequest request);
+    /**
+     * Cria o usuário com a senha já transformada em hash. Chamado pelo
+     * cadastro em {@code /api/auth/cadastro}.
+     */
+    UsuarioResponse criar(UsuarioRequest request, String senha);
 
     UsuarioResponse buscarPorId(Long id);
 
@@ -28,7 +32,13 @@ public interface UsuarioService {
      */
     PageResponse<UsuarioResponse> listar(Posicao posicao, String busca, String nacionalidade, Pageable pageable);
 
-    UsuarioResponse atualizar(Long id, UsuarioRequest request);
+    /**
+     * @param usuarioLogadoId quem está chamando; só pode alterar o próprio cadastro
+     */
+    UsuarioResponse atualizar(Long id, UsuarioRequest request, Long usuarioLogadoId);
 
-    void deletar(Long id);
+    /**
+     * @param usuarioLogadoId quem está chamando; só pode apagar o próprio cadastro
+     */
+    void deletar(Long id, Long usuarioLogadoId);
 }

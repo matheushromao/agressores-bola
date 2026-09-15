@@ -5,3 +5,8 @@
 spring:
   jpa:
     show-sql: false
+
+app:
+  jwt:
+    # Segredo exclusivo dos testes: não protege nada real
+    secret: segredo-somente-para-testes-com-mais-de-32-bytes

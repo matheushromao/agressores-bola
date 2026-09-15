@@ -3,6 +3,7 @@ package com.hmz.agressores_da_bola.service.impl;
 import com.hmz.agressores_da_bola.dto.PageResponse;
 import com.hmz.agressores_da_bola.dto.UsuarioRequest;
 import com.hmz.agressores_da_bola.dto.UsuarioResponse;
+import com.hmz.agressores_da_bola.exception.AcessoNegadoException;
 import com.hmz.agressores_da_bola.exception.RecursoNaoEncontradoException;
 import com.hmz.agressores_da_bola.exception.RegraDeNegocioException;
 import com.hmz.agressores_da_bola.mapper.UsuarioMapper;
@@ -15,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,14 +26,16 @@ public class UsuarioServiceImpl implements UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
     private final UsuarioMapper usuarioMapper;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     @Transactional
-    public UsuarioResponse criar(UsuarioRequest request) {
+    public UsuarioResponse criar(UsuarioRequest request, String senha) {
         validarNicknameDisponivel(request.nickname(), null);
         validarEmailDisponivel(request.email(), null);
 
         Usuario usuario = usuarioMapper.toEntity(request);
+        usuario.setSenha(passwordEncoder.encode(senha));
         return usuarioMapper.toResponse(usuarioRepository.save(usuario));
     }
 
@@ -65,8 +69,9 @@ public class UsuarioServiceImpl implements UsuarioService {
 
     @Override
     @Transactional
-    public UsuarioResponse atualizar(Long id, UsuarioRequest request) {
+    public UsuarioResponse atualizar(Long id, UsuarioRequest request, Long usuarioLogadoId) {
         Usuario usuario = obterUsuario(id);
+        exigirProprioUsuario(usuario, usuarioLogadoId);
 
         validarNicknameDisponivel(request.nickname(), usuario);
         validarEmailDisponivel(request.email(), usuario);
@@ -77,14 +82,22 @@ public class UsuarioServiceImpl implements UsuarioService {
 
     @Override
     @Transactional
-    public void deletar(Long id) {
-        usuarioRepository.delete(obterUsuario(id));
+    public void deletar(Long id, Long usuarioLogadoId) {
+        Usuario usuario = obterUsuario(id);
+        exigirProprioUsuario(usuario, usuarioLogadoId);
+        usuarioRepository.delete(usuario);
     }
 
     private Usuario obterUsuario(Long id) {
         return usuarioRepository.findById(id)
                 .orElseThrow(() -> new RecursoNaoEncontradoException(
                         "Usuário não encontrado com o id: " + id));
+    }
+
+    private void exigirProprioUsuario(Usuario usuario, Long usuarioLogadoId) {
+        if (!usuario.getId().equals(usuarioLogadoId)) {
+            throw new AcessoNegadoException("Você só pode alterar o próprio cadastro");
+        }
     }
 
     private void validarNicknameDisponivel(String nickname, Usuario usuarioAtual) {

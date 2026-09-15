@@ -11,6 +11,7 @@ import com.hmz.agressores_da_bola.dto.StatusParticipacaoRequest;
 import com.hmz.agressores_da_bola.dto.StatusPeladaRequest;
 import com.hmz.agressores_da_bola.model.enums.StatusPelada;
 import com.hmz.agressores_da_bola.model.enums.TipoCampo;
+import com.hmz.agressores_da_bola.security.UsuarioLogado;
 import com.hmz.agressores_da_bola.service.PeladaService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,8 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -38,10 +41,14 @@ public class PeladaController {
      * Pelada
      * ------------------------------------------------------------------ */
 
+    /**
+     * O organizador é sempre quem está logado — não vem no corpo.
+     */
     @PostMapping
     public ResponseEntity<PeladaResponse> criar(@RequestBody @Valid PeladaRequest request,
+                                                @AuthenticationPrincipal Jwt jwt,
                                                 UriComponentsBuilder uriBuilder) {
-        PeladaResponse response = peladaService.criar(request);
+        PeladaResponse response = peladaService.criar(request, UsuarioLogado.id(jwt));
         URI location = uriBuilder.path("/api/peladas/{id}")
                 .buildAndExpand(response.id())
                 .toUri();
@@ -75,20 +82,22 @@ public class PeladaController {
 
     @PutMapping("/{id}")
     public ResponseEntity<PeladaResponse> atualizar(@PathVariable Long id,
-                                                    @RequestBody @Valid PeladaRequest request) {
-        return ResponseEntity.ok(peladaService.atualizar(id, request));
+                                                    @RequestBody @Valid PeladaRequest request,
+                                                    @AuthenticationPrincipal Jwt jwt) {
+        return ResponseEntity.ok(peladaService.atualizar(id, request, UsuarioLogado.id(jwt)));
     }
 
     @PatchMapping("/{id}/status")
     public ResponseEntity<PeladaResponse> alterarStatus(@PathVariable Long id,
-                                                        @RequestBody @Valid StatusPeladaRequest request) {
-        return ResponseEntity.ok(peladaService.alterarStatus(id, request.status()));
+                                                        @RequestBody @Valid StatusPeladaRequest request,
+                                                        @AuthenticationPrincipal Jwt jwt) {
+        return ResponseEntity.ok(peladaService.alterarStatus(id, request.status(), UsuarioLogado.id(jwt)));
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deletar(@PathVariable Long id) {
-        peladaService.deletar(id);
+    public void deletar(@PathVariable Long id, @AuthenticationPrincipal Jwt jwt) {
+        peladaService.deletar(id, UsuarioLogado.id(jwt));
     }
 
     /* ------------------------------------------------------------------
@@ -104,8 +113,9 @@ public class PeladaController {
     public ResponseEntity<ParticipanteResponse> adicionarParticipante(
             @PathVariable Long id,
             @RequestBody @Valid ParticipacaoRequest request,
+            @AuthenticationPrincipal Jwt jwt,
             UriComponentsBuilder uriBuilder) {
-        ParticipanteResponse response = peladaService.adicionarParticipante(id, request);
+        ParticipanteResponse response = peladaService.adicionarParticipante(id, request, UsuarioLogado.id(jwt));
         URI location = uriBuilder.path("/api/peladas/{id}/participantes")
                 .buildAndExpand(id)
                 .toUri();
@@ -116,13 +126,16 @@ public class PeladaController {
     public ResponseEntity<ParticipanteResponse> alterarStatusParticipacao(
             @PathVariable Long id,
             @PathVariable Long usuarioId,
-            @RequestBody @Valid StatusParticipacaoRequest request) {
-        return ResponseEntity.ok(peladaService.alterarStatusParticipacao(id, usuarioId, request.status()));
+            @RequestBody @Valid StatusParticipacaoRequest request,
+            @AuthenticationPrincipal Jwt jwt) {
+        return ResponseEntity.ok(peladaService.alterarStatusParticipacao(
+                id, usuarioId, request.status(), UsuarioLogado.id(jwt)));
     }
 
     @DeleteMapping("/{id}/participantes/{usuarioId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void removerParticipante(@PathVariable Long id, @PathVariable Long usuarioId) {
-        peladaService.removerParticipante(id, usuarioId);
+    public void removerParticipante(@PathVariable Long id, @PathVariable Long usuarioId,
+                                    @AuthenticationPrincipal Jwt jwt) {
+        peladaService.removerParticipante(id, usuarioId, UsuarioLogado.id(jwt));
     }
 }

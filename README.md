@@ -186,6 +186,8 @@ Para trocar de perfil: `SPRING_PROFILES_ACTIVE=prod`.
 | `DB_USERNAME` | Usuário do MySQL | sim |
 | `DB_PASSWORD` | Senha do MySQL | sim |
 | `DB_URL` | URL JDBC completa | só no perfil `prod` |
+| `JWT_SECRET` | Segredo HMAC do token, com pelo menos 32 bytes (`openssl rand -base64 48`) | sim |
+| `CORS_ORIGENS` | Origens do frontend autorizadas, separadas por vírgula | não (padrão `http://localhost:5173`) |
 
 O jeito mais simples em desenvolvimento é um `.env` na raiz do projeto, que a aplicação
 importa automaticamente e que está no `.gitignore`:
@@ -193,6 +195,7 @@ importa automaticamente e que está no `.gitignore`:
 ```properties
 DB_USERNAME=root
 DB_PASSWORD=sua_senha
+JWT_SECRET=cole-aqui-a-saida-de-openssl-rand-base64-48
 ```
 
 Variáveis de ambiente de verdade têm precedência sobre o `.env`:
@@ -268,6 +271,10 @@ antigos e novos, fazer o **de-para** com `UPDATE` e só então aplicar a **lista
 | **Credenciais fora do versionamento** | Os `application*.yaml` versionados só referenciam variáveis; o `.env` local está no `.gitignore` |
 | **Credenciais fora do código** | Configuração via `${DB_USERNAME}` / `${DB_PASSWORD}`, sem valor padrão |
 | **Schema versionado** | Migrations Flyway e `ddl-auto: validate` — o Hibernate nunca altera o banco |
+| **Autenticação stateless** | JWT HS256 validado pelo Resource Server do Spring Security (assinatura, emissor e expiração); sem sessão |
+| **Senhas com hash** | BCrypt via `DelegatingPasswordEncoder`; a senha nunca sai em DTO e o login não revela se o e-mail existe |
+| **Autorização por posse** | O id do usuário vem do token, nunca do corpo; os services conferem se ele organiza a pelada ou é o próprio jogador |
+| **CORS restrito** | Só as origens de `CORS_ORIGENS` podem chamar a API pelo navegador |
 | **Sem vazamento de dados pessoais** | `UsuarioResumoResponse` omite e-mail e telefone quando o jogador aparece dentro de outro recurso |
 | **Entidades nunca expostas** | Todo request e response passa por DTO, o que impede *mass assignment* e vazamento de relacionamentos |
 | **Validação na borda** | Bean Validation em todo `@RequestBody`, com validação de campos cruzados via `@AssertTrue` |
@@ -280,12 +287,10 @@ antigos e novos, fazer o **de-para** com `UPDATE` e só então aplicar a **lista
 Estas são as lacunas conscientes do estágio atual do projeto. **A API ainda não deve ser
 exposta publicamente.**
 
-- **Não há autenticação nem autorização.** Qualquer cliente pode criar, alterar e apagar
-  qualquer recurso. Os endpoints confiam no `organizadorId` e no `usuarioId` do corpo ou
-  da URL, sem verificar quem está chamando.
-- **Sem HTTPS.** O tráfego roda em texto claro em desenvolvimento.
-- **Sem rate limiting** nem proteção contra abuso automatizado.
-- **Sem CORS configurado** — a política padrão do Spring se aplica.
+- **Sem HTTPS.** O tráfego roda em texto claro em desenvolvimento — e o token vai junto.
+- **Sem rate limiting** nem bloqueio após tentativas de login, o que deixa força bruta possível.
+- **Sem refresh token nem revogação.** O token vale até expirar (2 horas); trocar a senha
+  não derruba tokens já emitidos.
 - **`show-sql: true`** joga as consultas no log; por isso fica só no perfil `dev`.
 
 ### Recomendações operacionais
@@ -305,11 +310,66 @@ exposta publicamente.**
 
 Base: `http://localhost:8080/api`
 
+### Autenticação
+
+| Método | Rota | Descrição | Sucesso |
+|---|---|---|---|
+| `POST` | `/auth/cadastro` | Cria a conta do jogador | `201` + `Location` |
+| `POST` | `/auth/login` | Troca e-mail e senha por um token | `200` |
+
+```http
+POST /api/auth/cadastro
+Content-Type: application/json
+
+{
+  "usuario": {
+    "nomeCompleto": "Matheus Romão",
+    "nickname": "matheus",
+    "descricao": "Ala pela esquerda, canhoto",
+    "numeroCelular": "(11) 91234-5678",
+    "email": "matheus@exemplo.com",
+    "idade": 27,
+    "posicao": "ALA",
+    "nacionalidade": "Brasileira",
+    "estrelas": 4.0
+  },
+  "senha": "uma-senha-forte"
+}
+```
+
+O campo `estrelas` é opcional e aceita de `1.0` a `5.0`, variando de meia em meia
+(`1.5`, `2.5`, `3.5`, `4.5`). Jogador sem avaliação entra no sorteio como mediano (`3.0`).
+A senha tem de 8 a 72 caracteres.
+
+```http
+POST /api/auth/login
+Content-Type: application/json
+
+{ "email": "matheus@exemplo.com", "senha": "uma-senha-forte" }
+```
+
+```json
+{ "token": "eyJhbGciOiJIUzI1NiJ9...", "tipo": "Bearer", "expiraEm": "2026-09-15T17:00:00Z" }
+```
+
+Nas rotas protegidas, envie `Authorization: Bearer <token>`. Sem token (ou com token
+inválido ou expirado) a resposta é `401`; com token de quem não tem permissão, `403`. Os
+dois vêm no mesmo formato de erro da API.
+
+**Quem pode o quê**
+
+| Recurso | Sem login | Logado | Só o dono |
+|---|---|---|---|
+| Ranking, lista e detalhe de pelada, escalação, súmula | leitura | leitura | — |
+| Jogadores (`/usuarios`, expõe e-mail e celular) | — | leitura | editar e apagar o próprio cadastro |
+| Pelada | — | criar (vira o organizador) | organizador: editar, mudar status, apagar |
+| Escalação | — | entrar, mudar o próprio status, sair | organizador: incluir, alterar e remover qualquer jogador |
+| Súmula e sorteio | — | — | organizador: lançar, apagar e sortear |
+
 ### Usuários
 
 | Método | Rota | Descrição | Sucesso |
 |---|---|---|---|
-| `POST` | `/usuarios` | Cadastra jogador | `201` + `Location` |
 | `GET` | `/usuarios` | Lista paginada com filtros | `200` |
 | `GET` | `/usuarios/{id}` | Busca por id | `200` |
 | `GET` | `/usuarios/nickname/{nickname}` | Busca por nickname | `200` |
@@ -318,25 +378,8 @@ Base: `http://localhost:8080/api`
 
 **Filtros de listagem:** `posicao`, `busca` (nome ou nickname), `nacionalidade`.
 
-```http
-POST /api/usuarios
-Content-Type: application/json
-
-{
-  "nomeCompleto": "Matheus Romão",
-  "nickname": "matheus",
-  "descricao": "Ala pela esquerda, canhoto",
-  "numeroCelular": "(11) 91234-5678",
-  "email": "matheus@exemplo.com",
-  "idade": 27,
-  "posicao": "ALA",
-  "nacionalidade": "Brasileira",
-  "estrelas": 4.0
-}
-```
-
-O campo `estrelas` é opcional e aceita de `1.0` a `5.0`, variando de meia em meia
-(`1.5`, `2.5`, `3.5`, `4.5`). Jogador sem avaliação entra no sorteio como mediano (`3.0`).
+O cadastro fica em `POST /auth/cadastro`. O `PUT` recebe os mesmos campos do objeto
+`usuario` do cadastro, sem a senha.
 
 ### Peladas
 
@@ -354,6 +397,7 @@ O campo `estrelas` é opcional e aceita de `1.0` a `5.0`, variando de meia em me
 
 ```http
 POST /api/peladas
+Authorization: Bearer <token>
 Content-Type: application/json
 
 {
@@ -368,13 +412,12 @@ Content-Type: application/json
   "estado": "SP",
   "tipoCampo": "SOCIETY",
   "maxParticipantes": 14,
-  "valorPorJogador": 25.00,
-  "organizadorId": 1
+  "valorPorJogador": 25.00
 }
 ```
 
-O organizador entra automaticamente na escalação como `CONFIRMADO` — a pelada nunca
-nasce vazia.
+O organizador é o usuário do token — não vai no corpo — e entra automaticamente na
+escalação como `CONFIRMADO`, então a pelada nunca nasce vazia.
 
 ### Escalação
 
@@ -393,7 +436,8 @@ Content-Type: application/json
 ```
 
 `status` é opcional: o organizador que convida envia `CONVIDADO`; o jogador que entra por
-conta própria envia `CONFIRMADO`, que é o padrão.
+conta própria envia `CONFIRMADO`, que é o padrão. Quem não organiza só pode informar o
+próprio `usuarioId`.
 
 ### Estatísticas
 
@@ -734,6 +778,10 @@ ou detalhe de schema.
 | `BalanceadorDeTimesTest` | Equilíbrio das estrelas, distribuição de goleiros, formação de reservas, reprodutibilidade por semente, nota padrão de quem não foi avaliado |
 | `EstatisticaPartidaRepositoryTest` | Agregação do ranking contra o banco real, filtro por pelada e remoção da súmula órfã |
 | `AgressoresDaBolaApplicationTests` | Carga do contexto, que valida os mapeamentos JPA e o parsing das consultas JPQL |
+| `PeladaServiceImplTest` | Posse da pelada, lotação e lista de espera, promoção ao liberar vaga, organizador que não sai, transições de status (Mockito) |
+| `EstatisticaServiceImplTest` | Só o organizador lança súmula, atributos por posição jogada, herança da posição do cadastro, pelada sem jogo e jogador não confirmado (Mockito) |
+| `PeladaControllerWebMvcTest` | Rotas públicas e protegidas, id do token chegando ao service e 403 no formato de erro, sem banco |
+| `SegurancaIntegracaoTest` | Cadastro, login, token adulterado, 401/403 e posse da pelada de ponta a ponta contra o MySQL do contêiner |
 
 `EstatisticaPartidaRepositoryTest` usa `@DataJpaTest` apontado para o MySQL do
 contêiner (`@AutoConfigureTestDatabase(replace = NONE)` e `TestcontainersConfiguration`) — é a única forma de
@@ -744,7 +792,7 @@ compilam. A transação é desfeita ao fim de cada teste, então nada sobra na b
 
 ## Roadmap
 
-- [ ] Autenticação e autorização com Spring Security e JWT
+- [x] Autenticação e autorização com Spring Security e JWT
 - [x] Migrations versionadas com Flyway, substituindo o `ddl-auto: update`
 - [ ] Documentação interativa com OpenAPI / Swagger UI
 - [ ] Persistência opcional do sorteio, para manter o histórico de times de cada pelada

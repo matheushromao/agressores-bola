@@ -156,6 +156,7 @@ class EstatisticaPartidaRepositoryTest {
                 .posicao(posicao)
                 .nacionalidade("Brasileira")
                 .estrelas(new BigDecimal("3.5"))
+                .senha("{noop}senha-de-teste")
                 .build());
     }
 

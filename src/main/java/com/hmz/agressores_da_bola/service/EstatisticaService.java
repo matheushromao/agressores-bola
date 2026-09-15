@@ -9,10 +9,12 @@ import java.util.List;
  * Contrato do lançamento de súmula. É uma operação por jogador e por pelada:
  * registrar de novo sobrescreve os números, o que permite ao organizador
  * corrigir um lançamento sem precisar apagar antes.
+ *
+ * <p>Lançar e apagar súmula é exclusivo do organizador da pelada.</p>
  */
 public interface EstatisticaService {
 
-    EstatisticaResponse registrar(Long peladaId, Long usuarioId, EstatisticaRequest request);
+    EstatisticaResponse registrar(Long peladaId, Long usuarioId, EstatisticaRequest request, Long usuarioLogadoId);
 
     EstatisticaResponse buscar(Long peladaId, Long usuarioId);
 
@@ -22,5 +24,5 @@ public interface EstatisticaService {
      */
     List<EstatisticaResponse> listarDaPelada(Long peladaId);
 
-    void remover(Long peladaId, Long usuarioId);
+    void remover(Long peladaId, Long usuarioId, Long usuarioLogadoId);
 }

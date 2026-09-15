@@ -2,10 +2,13 @@ package com.hmz.agressores_da_bola.controller;
 
 import com.hmz.agressores_da_bola.dto.SorteioRequest;
 import com.hmz.agressores_da_bola.dto.SorteioResponse;
+import com.hmz.agressores_da_bola.security.UsuarioLogado;
 import com.hmz.agressores_da_bola.service.SorteioService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -25,7 +28,8 @@ public class SorteioController {
      */
     @PostMapping
     public ResponseEntity<SorteioResponse> sortear(@PathVariable Long peladaId,
-                                                   @RequestBody @Valid SorteioRequest request) {
-        return ResponseEntity.ok(sorteioService.sortear(peladaId, request));
+                                                   @RequestBody @Valid SorteioRequest request,
+                                                   @AuthenticationPrincipal Jwt jwt) {
+        return ResponseEntity.ok(sorteioService.sortear(peladaId, request, UsuarioLogado.id(jwt)));
     }
 }

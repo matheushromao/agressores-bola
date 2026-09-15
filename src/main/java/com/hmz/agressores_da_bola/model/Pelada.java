@@ -130,6 +130,15 @@ public class Pelada {
         return status != null && !status.encerrada();
     }
 
+    /**
+     * Posse da pelada: só quem organiza altera dados, status, súmula e sorteio.
+     */
+    public boolean organizadaPor(Long usuarioId) {
+        return organizador != null
+                && organizador.getId() != null
+                && organizador.getId().equals(usuarioId);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

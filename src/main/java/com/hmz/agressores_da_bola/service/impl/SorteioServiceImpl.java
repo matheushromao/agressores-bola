@@ -2,6 +2,7 @@ package com.hmz.agressores_da_bola.service.impl;
 
 import com.hmz.agressores_da_bola.dto.SorteioRequest;
 import com.hmz.agressores_da_bola.dto.SorteioResponse;
+import com.hmz.agressores_da_bola.exception.AcessoNegadoException;
 import com.hmz.agressores_da_bola.exception.RecursoNaoEncontradoException;
 import com.hmz.agressores_da_bola.exception.RegraDeNegocioException;
 import com.hmz.agressores_da_bola.mapper.SorteioMapper;
@@ -31,11 +32,14 @@ public class SorteioServiceImpl implements SorteioService {
 
     @Override
     @Transactional(readOnly = true)
-    public SorteioResponse sortear(Long peladaId, SorteioRequest request) {
+    public SorteioResponse sortear(Long peladaId, SorteioRequest request, Long usuarioLogadoId) {
         Pelada pelada = peladaRepository.buscarComParticipantes(peladaId)
                 .orElseThrow(() -> new RecursoNaoEncontradoException(
                         "Pelada não encontrada com o id: " + peladaId));
 
+        if (!pelada.organizadaPor(usuarioLogadoId)) {
+            throw new AcessoNegadoException("Só o organizador pode sortear os times desta pelada");
+        }
         validarPeladaSorteavel(pelada);
 
         // Só quem confirmou presença entra no sorteio: convidado e lista de

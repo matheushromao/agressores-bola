@@ -2,11 +2,14 @@ package com.hmz.agressores_da_bola.controller;
 
 import com.hmz.agressores_da_bola.dto.EstatisticaRequest;
 import com.hmz.agressores_da_bola.dto.EstatisticaResponse;
+import com.hmz.agressores_da_bola.security.UsuarioLogado;
 import com.hmz.agressores_da_bola.service.EstatisticaService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -44,13 +47,15 @@ public class EstatisticaController {
     @PutMapping("/participantes/{usuarioId}/estatistica")
     public ResponseEntity<EstatisticaResponse> registrar(@PathVariable Long peladaId,
                                                          @PathVariable Long usuarioId,
-                                                         @RequestBody @Valid EstatisticaRequest request) {
-        return ResponseEntity.ok(estatisticaService.registrar(peladaId, usuarioId, request));
+                                                         @RequestBody @Valid EstatisticaRequest request,
+                                                         @AuthenticationPrincipal Jwt jwt) {
+        return ResponseEntity.ok(estatisticaService.registrar(peladaId, usuarioId, request, UsuarioLogado.id(jwt)));
     }
 
     @DeleteMapping("/participantes/{usuarioId}/estatistica")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void remover(@PathVariable Long peladaId, @PathVariable Long usuarioId) {
-        estatisticaService.remover(peladaId, usuarioId);
+    public void remover(@PathVariable Long peladaId, @PathVariable Long usuarioId,
+                        @AuthenticationPrincipal Jwt jwt) {
+        estatisticaService.remover(peladaId, usuarioId, UsuarioLogado.id(jwt));
     }
 }

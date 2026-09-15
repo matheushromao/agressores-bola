@@ -241,7 +241,9 @@ Fazer depois não é catastrófico, mas é retrabalho garantido e evitável.
 
 ### 5.2 O que implementar
 
-- `spring-boot-starter-security` + uma biblioteca de JWT
+- `spring-boot-starter-security-oauth2-resource-server` (nome do Boot 4), que
+  traz o Spring Security e o Nimbus: o próprio Resource Server valida o JWT
+  HS256, sem biblioteca de terceiros nem filtro escrito à mão
 - Campo de senha em `Usuario` com `BCryptPasswordEncoder` — **nunca** em texto
   puro, e nunca exposto em `UsuarioResponse`
 - `POST /api/auth/login` devolvendo o token; filtro de autenticação na cadeia
@@ -338,12 +340,12 @@ Etapa 2 — Docker
   [x] ./mvnw test passando sem MySQL instalado
 
 Etapa 3 — Segurança
-  [ ] Spring Security + JWT, senha com BCrypt
-  [ ] POST /api/auth/login
-  [ ] autorização por dono da pelada (no service)
-  [ ] CORS para a origem do front
-  [ ] testes de EstatisticaServiceImpl e PeladaServiceImpl
-  [ ] @WebMvcTest nos controllers
+  [x] Spring Security + JWT, senha com BCrypt
+  [x] POST /api/auth/login (e POST /api/auth/cadastro)
+  [x] autorização por dono da pelada (no service)
+  [x] CORS para a origem do front
+  [x] testes de EstatisticaServiceImpl e PeladaServiceImpl
+  [~] @WebMvcTest nos controllers — feito para PeladaController; os demais seguem o mesmo padrão
 
 Etapa 4 — OpenAPI
   [ ] springdoc (conferir versão para Boot 4.1)

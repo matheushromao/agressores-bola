@@ -4,6 +4,7 @@ import com.hmz.agressores_da_bola.dto.PageResponse;
 import com.hmz.agressores_da_bola.dto.UsuarioRequest;
 import com.hmz.agressores_da_bola.dto.UsuarioResponse;
 import com.hmz.agressores_da_bola.model.enums.Posicao;
+import com.hmz.agressores_da_bola.security.UsuarioLogado;
 import com.hmz.agressores_da_bola.service.UsuarioService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -12,27 +13,20 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.util.UriComponentsBuilder;
 
-import java.net.URI;
-
+/**
+ * Perfis de jogador. O cadastro fica em {@code POST /api/auth/cadastro},
+ * junto com a senha.
+ */
 @RestController
 @RequestMapping("/api/usuarios")
 @RequiredArgsConstructor
 public class UsuarioController {
 
     private final UsuarioService usuarioService;
-
-    @PostMapping
-    public ResponseEntity<UsuarioResponse> criar(@RequestBody @Valid UsuarioRequest request,
-                                                 UriComponentsBuilder uriBuilder) {
-        UsuarioResponse response = usuarioService.criar(request);
-        URI location = uriBuilder.path("/api/usuarios/{id}")
-                .buildAndExpand(response.id())
-                .toUri();
-        return ResponseEntity.created(location).body(response);
-    }
 
     /**
      * Listagem paginada: {@code ?page=0&size=10&sort=nomeCompleto,asc}.
@@ -60,13 +54,14 @@ public class UsuarioController {
 
     @PutMapping("/{id}")
     public ResponseEntity<UsuarioResponse> atualizar(@PathVariable Long id,
-                                                     @RequestBody @Valid UsuarioRequest request) {
-        return ResponseEntity.ok(usuarioService.atualizar(id, request));
+                                                     @RequestBody @Valid UsuarioRequest request,
+                                                     @AuthenticationPrincipal Jwt jwt) {
+        return ResponseEntity.ok(usuarioService.atualizar(id, request, UsuarioLogado.id(jwt)));
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deletar(@PathVariable Long id) {
-        usuarioService.deletar(id);
+    public void deletar(@PathVariable Long id, @AuthenticationPrincipal Jwt jwt) {
+        usuarioService.deletar(id, UsuarioLogado.id(jwt));
     }
 }

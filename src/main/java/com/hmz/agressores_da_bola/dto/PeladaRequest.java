@@ -62,12 +62,10 @@ public record PeladaRequest(
 
         @DecimalMin(value = "0.0", message = "O valor por jogador não pode ser negativo")
         @DecimalMax(value = "9999.99", message = "O valor por jogador deve ser menor que 10.000,00")
-        BigDecimal valorPorJogador,
-
-        @NotNull(message = "O organizador é obrigatório")
-        Long organizadorId
+        BigDecimal valorPorJogador
 
 ) {
+    // O organizador não vem no corpo: é sempre o usuário do token.
 
     /**
      * Validação de campos cruzados: o Bean Validation resolve cada campo

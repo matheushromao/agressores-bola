@@ -49,7 +49,7 @@ tudo entra e sai como DTO.
 
 ```bash
 # 1. Informe as credenciais do MySQL num .env na raiz (ignorado pelo Git)
-printf 'DB_USERNAME=root\nDB_PASSWORD=sua_senha\n' > .env
+printf 'DB_USERNAME=root\nDB_PASSWORD=sua_senha\nJWT_SECRET=%s\n' "$(openssl rand -base64 48)" > .env
 
 # 2. Suba a aplicação e um MySQL próprio (só exige Docker)
 docker compose up --build
