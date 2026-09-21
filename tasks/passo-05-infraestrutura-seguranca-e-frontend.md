@@ -1,6 +1,6 @@
 # Passo 5 — Infraestrutura, segurança e o caminho até o frontend
 
-**Status:** planejado — nada aplicado ainda
+**Status:** etapas 1 a 4 aplicadas; falta o frontend (etapa 5)
 **Base:** commit `db41f19` (posições de futsal)
 
 ---
@@ -275,7 +275,7 @@ frontend consumir — inclusive gerando cliente tipado.
 <dependency>
     <groupId>org.springdoc</groupId>
     <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-    <version><!-- CONFERIR --></version>
+    <version>${springdoc.version}</version>   <!-- 3.1.1 -->
 </dependency>
 ```
 
@@ -287,6 +287,42 @@ frontend consumir — inclusive gerando cliente tipado.
 
 Fazer o frontend **antes** desta etapa significa escrever os DTOs à mão duas
 vezes e vê-los divergir com o tempo.
+
+### 6.1 O que foi feito
+
+**Versão: springdoc 3.1.1.** A conferência do aviso acima deu no que se
+esperava — a linha **2.x é do Boot 3** e a **3.x é a do Boot 4**. Copiar a
+versão de um tutorial teria colocado uma 2.x incompatível no `pom`.
+
+Havia um risco a mais, não previsto quando este documento foi escrito: o Boot 4
+usa **Jackson 3** (`tools.jackson`, visível no `SecurityConfig`) e o springdoc
+3.1.1 ainda carrega Jackson 2 internamente. Os dois pacotes coexistem, então
+funciona — mas isso foi **verificado antes de anotar qualquer coisa**, subindo a
+aplicação e pedindo o `/v3/api-docs`. Anotar 25 endpoints e só então descobrir
+uma incompatibilidade de base seria a ordem errada de trabalho.
+
+**Segurança.** `anyRequest().authenticated()` barraria o Swagger com 401, então
+`SecurityConfig` ganhou a constante `DOCUMENTACAO_PUBLICA` ao lado de
+`LEITURAS_PUBLICAS`. O contrato declara o esquema `bearer-jwt` e uma exigência
+**global** de token; os endpoints públicos se eximem com
+`@SecurityRequirements({})`, um a um, espelhando exatamente a cadeia de filtros.
+O resultado é conferível: no JSON gerado, as 10 operações públicas trazem
+`"security": []` e as 15 protegidas herdam a exigência global.
+
+**401 e 403 sem repetição.** Em vez de dois `@ApiResponse` em cada um dos 25
+métodos, um `OpenApiCustomizer` injeta as duas respostas em toda operação que
+exija token. O que sobra — 400, 404 e 409 — virou metanotação em
+`config/openapi/`, todas apontando para o `ErroResponse`, que já é o contrato
+único de erro da API.
+
+**Fora de produção.** `springdoc.api-docs.enabled: false` no perfil `prod`.
+Documentação interativa é ferramenta de desenvolvimento; em produção ela
+publicaria o mapa completo da API. Verificado: com `SPRING_PROFILES_ACTIVE=prod`
+a API responde normalmente e as rotas da documentação dão 404.
+
+**Teste.** `DocumentacaoOpenApiTest` guarda a regressão clássica — alguém aperta
+o `SecurityConfig`, o Swagger volta a dar 401 e ninguém percebe até o frontend
+reclamar.
 
 ---
 
@@ -348,9 +384,11 @@ Etapa 3 — Segurança
   [~] @WebMvcTest nos controllers — feito para PeladaController; os demais seguem o mesmo padrão
 
 Etapa 4 — OpenAPI
-  [ ] springdoc (conferir versão para Boot 4.1)
-  [ ] anotar os controllers
-  [ ] Swagger UI acessível
+  [x] springdoc 3.1.1 (a linha 3.x é a do Boot 4)
+  [x] anotar os controllers — 25 operações, 6 tags
+  [x] Swagger UI acessível, com Authorize funcionando
+  [x] desligado no perfil prod
+  [x] DocumentacaoOpenApiTest cobrindo o contrato
 
 Etapa 5 — Frontend
   [ ] login e cadastro

@@ -60,6 +60,17 @@ public class SecurityConfig {
             "/api/peladas/*/participantes/*/estatistica"
     };
 
+    /**
+     * Contrato OpenAPI e Swagger UI. No perfil {@code prod} o springdoc fica
+     * desligado por configuração, então estas rotas nem existem lá.
+     */
+    private static final String[] DOCUMENTACAO_PUBLICA = {
+            "/v3/api-docs",
+            "/v3/api-docs/**",
+            "/swagger-ui.html",
+            "/swagger-ui/**"
+    };
+
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http, JsonMapper jsonMapper) throws Exception {
         AuthenticationEntryPoint naoAutenticado = (request, response, ex) ->
@@ -77,6 +88,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(rotas -> rotas
                         .requestMatchers(HttpMethod.POST, "/api/auth/cadastro", "/api/auth/login").permitAll()
                         .requestMatchers(HttpMethod.GET, LEITURAS_PUBLICAS).permitAll()
+                        .requestMatchers(HttpMethod.GET, DOCUMENTACAO_PUBLICA).permitAll()
                         .requestMatchers("/error").permitAll()
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth -> oauth

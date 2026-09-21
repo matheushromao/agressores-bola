@@ -37,3 +37,15 @@ app:
   cors:
     # Origens do frontend autorizadas, separadas por vírgula
     origens: ${CORS_ORIGENS:http://localhost:5173}
+
+springdoc:
+  api-docs:
+    # Contrato OpenAPI em JSON, consumido pelo gerador de cliente do frontend
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    # Agrupa por método HTTP e ordena as tags, para a página não mudar de
+    # ordem a cada start
+    operations-sorter: method
+    tags-sorter: alpha
+    display-request-duration: true

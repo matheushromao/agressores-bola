@@ -20,7 +20,8 @@ API REST para organização de peladas (futebol amador), inspirada no app
 monta o grupo de jogadores que vai jogar.
 
 **Stack:** Java 25 · Spring Boot 4.1.0 · Spring Data JPA · Bean Validation ·
-MySQL 8 · Lombok · Maven
+Spring Security (JWT) · Flyway · springdoc-openapi · MySQL 8 · Docker ·
+Testcontainers · Lombok · Maven
 
 ## Arquitetura
 
@@ -60,7 +61,8 @@ docker compose up --build
 ./mvnw test
 ```
 
-A API sobe em `http://localhost:8080`.
+A API sobe em `http://localhost:8080` e se documenta em
+`http://localhost:8080/swagger-ui.html`.
 
 > A referência completa da API — endpoints, exemplos, regras de negócio e notas
 > de segurança — está no [README do projeto](../README.md). Os documentos desta

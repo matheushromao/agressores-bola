@@ -7,3 +7,11 @@ spring:
   flyway:
     # Impede que um "flyway clean" acidental apague a base
     clean-disabled: true
+
+# Documentação interativa é ferramenta de desenvolvimento: em produção ela
+# publicaria o mapa completo da API. As rotas deixam de existir.
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false

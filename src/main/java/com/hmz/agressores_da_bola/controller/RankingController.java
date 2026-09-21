@@ -1,10 +1,16 @@
 package com.hmz.agressores_da_bola.controller;
 
+import com.hmz.agressores_da_bola.config.openapi.RespostaDadosInvalidos;
 import com.hmz.agressores_da_bola.dto.DestaqueResponse;
 import com.hmz.agressores_da_bola.dto.RankingAtributoResponse;
 import com.hmz.agressores_da_bola.dto.RankingResponse;
 import com.hmz.agressores_da_bola.model.enums.AtributoPontuacao;
 import com.hmz.agressores_da_bola.service.RankingService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,6 +29,8 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/ranking")
 @RequiredArgsConstructor
+@Tag(name = "Rankings",
+        description = "Classificações agregadas da liga. Todos os endpoints são públicos.")
 public class RankingController {
 
     private final RankingService rankingService;
@@ -30,9 +38,17 @@ public class RankingController {
     /**
      * Classificação geral por pontos, do primeiro ao último colocado.
      */
+    @Operation(summary = "Classificação geral por pontos",
+            description = "Do primeiro ao último colocado, somando a tabela de pontuação de "
+                    + "todas as súmulas lançadas.")
+    @ApiResponse(responseCode = "200", description = "Classificação geral")
+    @RespostaDadosInvalidos
+    @SecurityRequirements
     @GetMapping
     public ResponseEntity<List<RankingResponse>> geral(
+            @Parameter(description = "Restringe a classificação a uma pelada")
             @RequestParam(required = false) Long peladaId,
+            @Parameter(description = "Traz apenas os N primeiros colocados", example = "10")
             @RequestParam(required = false) Integer limite) {
         return ResponseEntity.ok(rankingService.geral(peladaId, limite));
     }
@@ -41,10 +57,18 @@ public class RankingController {
      * Ranking de um atributo específico:
      * {@code /api/ranking/atributos/GOL}, {@code .../DEFESA_DIFICIL}.
      */
+    @Operation(summary = "Ranking de um atributo",
+            description = "Artilharia (GOL), assistências, desarmes, defesas e defesas difíceis.")
+    @ApiResponse(responseCode = "200", description = "Ranking do atributo")
+    @RespostaDadosInvalidos
+    @SecurityRequirements
     @GetMapping("/atributos/{atributo}")
     public ResponseEntity<List<RankingAtributoResponse>> porAtributo(
+            @Parameter(description = "Atributo da tabela de pontuação", example = "GOL")
             @PathVariable AtributoPontuacao atributo,
+            @Parameter(description = "Restringe o ranking a uma pelada")
             @RequestParam(required = false) Long peladaId,
+            @Parameter(description = "Traz apenas os N primeiros colocados", example = "10")
             @RequestParam(required = false) Integer limite) {
         return ResponseEntity.ok(rankingService.porAtributo(atributo, peladaId, limite));
     }
@@ -52,9 +76,16 @@ public class RankingController {
     /**
      * Os artilheiros, os garçons e os paredões de uma vez só.
      */
+    @Operation(summary = "Destaques por atributo",
+            description = "Os artilheiros, os garçons e os paredões em uma única chamada.")
+    @ApiResponse(responseCode = "200", description = "Destaques de cada atributo")
+    @RespostaDadosInvalidos
+    @SecurityRequirements
     @GetMapping("/destaques")
     public ResponseEntity<List<DestaqueResponse>> destaques(
+            @Parameter(description = "Restringe os destaques a uma pelada")
             @RequestParam(required = false) Long peladaId,
+            @Parameter(description = "Quantos destaques por atributo", example = "5")
             @RequestParam(defaultValue = "5") Integer limite) {
         return ResponseEntity.ok(rankingService.destaques(peladaId, limite));
     }

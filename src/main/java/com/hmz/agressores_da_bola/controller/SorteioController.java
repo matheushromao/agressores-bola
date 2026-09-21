@@ -1,9 +1,15 @@
 package com.hmz.agressores_da_bola.controller;
 
+import com.hmz.agressores_da_bola.config.openapi.RespostaDadosInvalidos;
+import com.hmz.agressores_da_bola.config.openapi.RespostaNaoEncontrado;
+import com.hmz.agressores_da_bola.config.openapi.RespostaRegraDeNegocio;
 import com.hmz.agressores_da_bola.dto.SorteioRequest;
 import com.hmz.agressores_da_bola.dto.SorteioResponse;
 import com.hmz.agressores_da_bola.security.UsuarioLogado;
 import com.hmz.agressores_da_bola.service.SorteioService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/peladas/{peladaId}/sorteio")
 @RequiredArgsConstructor
+@Tag(name = "Sorteio", description = "Divisão dos confirmados em times equilibrados por estrelas")
 public class SorteioController {
 
     private final SorteioService sorteioService;
@@ -26,6 +33,14 @@ public class SorteioController {
      * POST mesmo sem gravar nada: cada chamada produz uma divisão diferente,
      * então a operação não é idempotente como um GET precisaria ser.
      */
+    @Operation(summary = "Sorteia os times da pelada",
+            description = "Divide os jogadores confirmados equilibrando a soma de estrelas e "
+                    + "distribuindo um goleiro por time. Nada é gravado: cada chamada produz "
+                    + "uma divisão diferente, e é por isso que o verbo é POST e não GET.")
+    @ApiResponse(responseCode = "200", description = "Times sorteados")
+    @RespostaDadosInvalidos
+    @RespostaNaoEncontrado
+    @RespostaRegraDeNegocio
     @PostMapping
     public ResponseEntity<SorteioResponse> sortear(@PathVariable Long peladaId,
                                                    @RequestBody @Valid SorteioRequest request,

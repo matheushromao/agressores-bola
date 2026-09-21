@@ -28,6 +28,9 @@
 	</scm>
 	<properties>
 		<java.version>25</java.version>
+		<!-- O springdoc nao e gerenciado pelo BOM do Spring Boot, entao a versao
+		     e obrigatoria. A linha 3.x e a que suporta o Boot 4 (a 2.x e do Boot 3). -->
+		<springdoc.version>3.1.1</springdoc.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -53,6 +56,11 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-security-oauth2-resource-server</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+			<version>${springdoc.version}</version>
 		</dependency>
 
 		<dependency>

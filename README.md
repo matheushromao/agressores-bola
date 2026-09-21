@@ -18,6 +18,7 @@ equilibrados por nível técnico.
 - [Arquitetura](#arquitetura)
 - [Modelo de domínio](#modelo-de-domínio)
 - [Configuração e execução](#configuração-e-execução)
+- [Documentação interativa](#documentação-interativa)
 - [Segurança](#segurança)
 - [API](#api)
   - [Usuários](#usuários)
@@ -60,6 +61,7 @@ O projeto resolve o ciclo completo de uma pelada recreativa:
 | Framework | Spring Boot 4.1.0 (Web MVC, Data JPA, Validation) |
 | Persistência | Hibernate ORM / JPA, MySQL 8 |
 | Consultas dinâmicas | JPA Criteria API via `Specification` |
+| Documentação da API | springdoc-openapi 3.1.1 (OpenAPI 3.1 + Swagger UI) |
 | Boilerplate | Lombok |
 | Build | Maven Wrapper |
 | Testes | JUnit 5, AssertJ, slices de teste do Spring Boot |
@@ -262,6 +264,35 @@ antigos e novos, fazer o **de-para** com `UPDATE` e só então aplicar a **lista
 
 ---
 
+## Documentação interativa
+
+Com a aplicação no ar, a API se documenta sozinha:
+
+| Recurso | Endereço |
+|---|---|
+| Swagger UI | `http://localhost:8080/swagger-ui.html` |
+| Contrato OpenAPI 3.1 (JSON) | `http://localhost:8080/v3/api-docs` |
+
+Para exercitar um endpoint protegido pela própria página:
+
+1. `POST /api/auth/cadastro` para criar a conta (ou use uma existente);
+2. `POST /api/auth/login` e copie o `token` da resposta;
+3. clique em **Authorize**, cole o token e confirme — o Swagger passa a enviar
+   `Authorization: Bearer <token>` em toda chamada.
+
+Endpoints sem cadeado são públicos e dispensam esse passo. As respostas `401` e `403`
+aparecem em todas as operações protegidas, e os erros seguem o mesmo `ErroResponse` do
+[tratamento de erros](#tratamento-de-erros).
+
+O contrato é o insumo do frontend: dá para gerar um cliente tipado a partir do JSON em
+vez de reescrever os DTOs à mão.
+
+> **No perfil `prod` a documentação fica desligada** (`springdoc.api-docs.enabled: false`),
+> porque publicar o mapa completo da API é dar o roteiro de graça. Nesse perfil as duas
+> rotas acima respondem `404`.
+
+---
+
 ## Segurança
 
 ### O que já está em prática
@@ -280,6 +311,7 @@ antigos e novos, fazer o **de-para** com `UPDATE` e só então aplicar a **lista
 | **Validação na borda** | Bean Validation em todo `@RequestBody`, com validação de campos cruzados via `@AssertTrue` |
 | **Proteção contra SQL injection** | Consultas parametrizadas (JPQL e Criteria API); nenhuma concatenação de SQL |
 | **Teto de paginação** | `max-page-size: 50` impede que `?size=100000` derrube a aplicação |
+| **Documentação fora de produção** | O springdoc é desabilitado no perfil `prod`; Swagger UI e contrato só existem em desenvolvimento |
 | **Erros sem stack trace** | O handler global devolve mensagem de domínio; exceção de integridade do banco não vaza detalhe de schema |
 
 ### Limitações conhecidas
@@ -768,7 +800,7 @@ ou detalhe de schema.
 ./mvnw test
 ```
 
-> A suíte exige o **Docker em execução** e nada mais: dois dos três testes sobem contexto
+> A suíte exige o **Docker em execução** e nada mais: os testes de contexto sobem o Spring
 > Spring com o perfil `test` contra um MySQL 8 descartável do Testcontainers, onde o Flyway
 > aplica as migrations antes — ou seja, a suíte também valida os scripts. Não é preciso
 > MySQL instalado nem `.env`.
@@ -782,6 +814,7 @@ ou detalhe de schema.
 | `EstatisticaServiceImplTest` | Só o organizador lança súmula, atributos por posição jogada, herança da posição do cadastro, pelada sem jogo e jogador não confirmado (Mockito) |
 | `PeladaControllerWebMvcTest` | Rotas públicas e protegidas, id do token chegando ao service e 403 no formato de erro, sem banco |
 | `SegurancaIntegracaoTest` | Cadastro, login, token adulterado, 401/403 e posse da pelada de ponta a ponta contra o MySQL do contêiner |
+| `DocumentacaoOpenApiTest` | Contrato e Swagger UI acessíveis sem token, esquema `bearer-jwt` declarado, endpoints públicos sem exigência, `401`/`403`/`404` com o schema de erro e paginação como query param |
 
 `EstatisticaPartidaRepositoryTest` usa `@DataJpaTest` apontado para o MySQL do
 contêiner (`@AutoConfigureTestDatabase(replace = NONE)` e `TestcontainersConfiguration`) — é a única forma de
@@ -794,7 +827,7 @@ compilam. A transação é desfeita ao fim de cada teste, então nada sobra na b
 
 - [x] Autenticação e autorização com Spring Security e JWT
 - [x] Migrations versionadas com Flyway, substituindo o `ddl-auto: update`
-- [ ] Documentação interativa com OpenAPI / Swagger UI
+- [x] Documentação interativa com OpenAPI / Swagger UI
 - [ ] Persistência opcional do sorteio, para manter o histórico de times de cada pelada
 - [ ] Cobertura de testes nos services e nos controllers
 - [x] Perfis de configuração (`dev`, `test`, `prod`) com `application-{perfil}.yaml`
