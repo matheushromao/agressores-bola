@@ -1,0 +1,248 @@
+<section class="mx-auto max-w-3xl">
+  @if (editando()) {
+    <a [routerLink]="['/peladas', id()]" class="text-sm text-slate-600 hover:underline dark:text-slate-400">
+      ← Voltar para a pelada
+    </a>
+  } @else {
+    <a routerLink="/peladas" class="text-sm text-slate-600 hover:underline dark:text-slate-400">
+      ← Todas as peladas
+    </a>
+  }
+
+  <h1 class="mt-4 text-2xl font-bold tracking-tight">
+    {{ editando() ? 'Editar pelada' : 'Agendar pelada' }}
+  </h1>
+  <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">
+    @if (editando()) {
+      Alterações valem para quem já está escalado.
+    } @else {
+      Você fica como organizador desta pelada.
+    }
+  </p>
+
+  @if (editando() && !souOrganizador()) {
+    <p
+      class="mt-6 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200"
+    >
+      Só quem organiza esta pelada pode editá-la.
+    </p>
+  } @else {
+    @if (encerrada()) {
+      <p
+        class="mt-6 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200"
+      >
+        Esta pelada está <strong>{{ pelada.value()?.statusDescricao }}</strong> e não aceita mais alterações.
+      </p>
+    } @else if (inicioNoPassado()) {
+      <p
+        class="mt-6 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200"
+      >
+        O horário de início já passou. Para salvar qualquer alteração, remarque a
+        <strong>data e a hora</strong> para o futuro.
+      </p>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="salvar()" class="mt-6 space-y-6">
+      <fieldset class="grid gap-4 sm:grid-cols-2">
+        <legend class="text-sm font-semibold">A partida</legend>
+
+        <div class="sm:col-span-2">
+          <label for="nome" class="block text-xs font-medium text-slate-600 dark:text-slate-400">Nome</label>
+          <input
+            id="nome"
+            formControlName="nome"
+            placeholder="Pelada de quinta"
+            class="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900"
+          />
+          @if (form.controls.nome.touched && form.controls.nome.invalid) {
+            <p class="mt-1 text-xs text-red-600 dark:text-red-400">De 3 a 100 caracteres.</p>
+          }
+        </div>
+
+        <div class="sm:col-span-2">
+          <label for="descricao" class="block text-xs font-medium text-slate-600 dark:text-slate-400">
+            Observações <span class="font-normal">(opcional)</span>
+          </label>
+          <textarea
+            id="descricao"
+            rows="2"
+            formControlName="descricao"
+            placeholder="Levar colete e camisa branca"
+            class="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900"
+          ></textarea>
+        </div>
+
+        <div>
+          <label for="data" class="block text-xs font-medium text-slate-600 dark:text-slate-400">Data</label>
+          <input
+            id="data"
+            type="date"
+            formControlName="data"
+            class="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900"
+          />
+          <p class="mt-1 text-xs text-slate-500">O início precisa estar no futuro.</p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label for="horaInicio" class="block text-xs font-medium text-slate-600 dark:text-slate-400">
+              Início
+            </label>
+            <input
+              id="horaInicio"
+              type="time"
+              formControlName="horaInicio"
+              class="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900"
+            />
+          </div>
+          <div>
+            <label for="horaFim" class="block text-xs font-medium text-slate-600 dark:text-slate-400">
+              Término
+            </label>
+            <input
+              id="horaFim"
+              type="time"
+              formControlName="horaFim"
+              class="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900"
+            />
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset class="grid gap-4 sm:grid-cols-2">
+        <legend class="text-sm font-semibold">O local</legend>
+
+        <div>
+          <label for="localNome" class="block text-xs font-medium text-slate-600 dark:text-slate-400">
+            Quadra ou campo
+          </label>
+          <input
+            id="localNome"
+            formControlName="localNome"
+            placeholder="Arena Vila Progresso"
+            class="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900"
+          />
+        </div>
+
+        <div>
+          <label for="endereco" class="block text-xs font-medium text-slate-600 dark:text-slate-400">
+            Endereço
+          </label>
+          <input
+            id="endereco"
+            formControlName="endereco"
+            placeholder="Rua das Palmeiras, 120"
+            class="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900"
+          />
+        </div>
+
+        <div>
+          <label for="cidade" class="block text-xs font-medium text-slate-600 dark:text-slate-400">Cidade</label>
+          <input
+            id="cidade"
+            formControlName="cidade"
+            placeholder="Sorocaba"
+            class="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900"
+          />
+        </div>
+
+        <div>
+          <label for="estado" class="block text-xs font-medium text-slate-600 dark:text-slate-400">
+            Estado <span class="font-normal">(sigla)</span>
+          </label>
+          <input
+            id="estado"
+            formControlName="estado"
+            maxlength="2"
+            placeholder="SP"
+            class="mt-1 w-24 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm uppercase dark:border-slate-700 dark:bg-slate-900"
+          />
+          @if (form.controls.estado.touched && form.controls.estado.invalid) {
+            <p class="mt-1 text-xs text-red-600 dark:text-red-400">Use a sigla com 2 letras, como SP.</p>
+          }
+        </div>
+      </fieldset>
+
+      <fieldset class="grid gap-4 sm:grid-cols-3">
+        <legend class="text-sm font-semibold">As vagas</legend>
+
+        <div>
+          <label for="tipoCampo" class="block text-xs font-medium text-slate-600 dark:text-slate-400">
+            Tipo de campo
+          </label>
+          <select
+            id="tipoCampo"
+            formControlName="tipoCampo"
+            class="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900"
+          >
+            @for (opcao of tiposDeCampo; track opcao.valor) {
+              <option [value]="opcao.valor">{{ opcao.rotulo }}</option>
+            }
+          </select>
+        </div>
+
+        <div>
+          <label for="maxParticipantes" class="block text-xs font-medium text-slate-600 dark:text-slate-400">
+            Limite de jogadores
+          </label>
+          <input
+            id="maxParticipantes"
+            type="number"
+            min="2"
+            max="50"
+            formControlName="maxParticipantes"
+            class="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900"
+          />
+          @if (editando() && pelada.value()?.totalConfirmados) {
+            <p class="mt-1 text-xs text-slate-500">
+              Não pode ser menor que os {{ pelada.value()?.totalConfirmados }} já confirmados.
+            </p>
+          } @else {
+            <p class="mt-1 text-xs text-slate-500">Depois disso, quem entrar vai para a lista de espera.</p>
+          }
+        </div>
+
+        <div>
+          <label for="valorPorJogador" class="block text-xs font-medium text-slate-600 dark:text-slate-400">
+            Valor por jogador (R$)
+          </label>
+          <input
+            id="valorPorJogador"
+            type="number"
+            min="0"
+            step="0.01"
+            formControlName="valorPorJogador"
+            class="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900"
+          />
+        </div>
+      </fieldset>
+
+      @if (erro(); as mensagem) {
+        <div
+          role="alert"
+          class="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300"
+        >
+          <p>{{ mensagem }}</p>
+          @for (campo of errosPorCampo() | keyvalue; track campo.key) {
+            <p class="mt-1 text-xs"><strong>{{ campo.key }}</strong>: {{ campo.value }}</p>
+          }
+        </div>
+      }
+
+      <div class="flex flex-wrap items-center gap-3">
+        <button
+          type="submit"
+          [disabled]="salvando() || encerrada()"
+          class="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-60"
+        >
+          {{ salvando() ? 'Salvando…' : editando() ? 'Salvar alterações' : 'Agendar pelada' }}
+        </button>
+        <a
+          [routerLink]="editando() ? ['/peladas', id()] : ['/peladas']"
+          class="text-sm text-slate-600 hover:underline dark:text-slate-400"
+          >Cancelar</a
+        >
+      </div>
+    </form>
+  }
+</section>

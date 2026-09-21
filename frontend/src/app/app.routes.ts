@@ -22,10 +22,24 @@ export const routes: Routes = [
     title: 'Peladas · Agressores da Bola',
     loadComponent: () => import('./paginas/peladas/peladas-lista').then((m) => m.PeladasLista),
   },
+  // Antes de 'peladas/:id', senão "nova" seria lido como um id.
+  {
+    path: 'peladas/nova',
+    title: 'Agendar pelada · Agressores da Bola',
+    canActivate: [authGuard],
+    loadComponent: () => import('./paginas/peladas/pelada-formulario').then((m) => m.PeladaFormulario),
+  },
   {
     path: 'peladas/:id',
     title: 'Pelada · Agressores da Bola',
     loadComponent: () => import('./paginas/peladas/pelada-detalhe').then((m) => m.PeladaDetalhe),
+  },
+
+  {
+    path: 'peladas/:id/editar',
+    title: 'Editar pelada · Agressores da Bola',
+    canActivate: [authGuard],
+    loadComponent: () => import('./paginas/peladas/pelada-formulario').then((m) => m.PeladaFormulario),
   },
 
   // Pública como a API: a súmula é leitura aberta; lançar exige ser o organizador.

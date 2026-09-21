@@ -4,6 +4,7 @@ import {
   Api,
   ParticipanteResponse,
   adicionarParticipante,
+  alterarStatusPelada,
   alterarStatusParticipacao,
   buscarPelada,
   removerParticipante,
@@ -12,7 +13,9 @@ import { AuthService } from '../../core/auth.service';
 import { mensagemDeErro } from '../../core/erro';
 import {
   STATUS_DE_PARTICIPACAO,
+  STATUS_DE_PELADA,
   StatusParticipacao,
+  StatusPelada,
   corDoStatus,
   dataBr,
   hora,
@@ -59,6 +62,14 @@ export class PeladaDetalhe {
     })).filter((grupo) => grupo.jogadores.length > 0);
   });
 
+  protected readonly statusDePelada = STATUS_DE_PELADA;
+
+  /** Encerrada (finalizada ou cancelada) não muda mais de situação. */
+  protected readonly encerrada = computed(() => {
+    const status = this.pelada.value()?.status;
+    return status === 'FINALIZADA' || status === 'CANCELADA';
+  });
+
   protected readonly souOrganizador = computed(
     () => this.auth.usuarioId() !== null && this.pelada.value()?.organizador?.id === this.auth.usuarioId(),
   );
@@ -93,6 +104,13 @@ export class PeladaDetalhe {
     }
     await this.executar(() =>
       this.api.invoke(removerParticipante, { id: Number(this.id()), usuarioId: meuId }),
+    );
+  }
+
+  /** Situação da pelada: é o que libera o sorteio e depois a súmula. */
+  protected async alterarSituacao(status: StatusPelada): Promise<void> {
+    await this.executar(() =>
+      this.api.invoke(alterarStatusPelada, { id: Number(this.id()), body: { status } }),
     );
   }
 

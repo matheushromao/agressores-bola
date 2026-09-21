@@ -24,7 +24,7 @@ export class PeladasLista {
   private readonly api = inject(Api);
   private readonly rota = inject(ActivatedRoute);
   private readonly router = inject(Router);
-  private readonly auth = inject(AuthService);
+  protected readonly auth = inject(AuthService);
   private readonly fb = inject(FormBuilder);
 
   protected readonly statusDePelada = STATUS_DE_PELADA;

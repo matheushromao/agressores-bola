@@ -1,6 +1,6 @@
 # Passo 6 — Frontend Angular: autenticação e peladas
 
-**Status:** roteiro do passo 5 concluído — login, cadastro, lista, detalhe, sorteio, súmula e rankings
+**Status:** frontend completo — do cadastro do jogador à classificação da liga
 **Base:** commit `e49c1ed` (documentação OpenAPI)
 
 ---
@@ -12,9 +12,9 @@ a última do roteiro. A ordem defendida lá se cumpriu: o frontend chegou depois
 de ambiente reprodutível, schema versionado, autenticação definida e **contrato
 formal** — e é esse contrato que dispensou reescrever os 28 DTOs à mão.
 
-Escopo entregue: **login, cadastro, lista de peladas com filtros e paginação,
-detalhe com confirmação de presença, sorteio de times, súmula e rankings** —
-o ciclo completo da pelada, do cadastro do jogador à classificação da liga.
+Escopo entregue: **login, cadastro, agendamento e edição de pelada, listagem
+com filtros e paginação, escalação, sorteio de times, súmula e rankings** — o
+ciclo completo, do cadastro do jogador à classificação da liga.
 
 ---
 
@@ -196,11 +196,43 @@ assistência 7, defesa 4, desarme 3), e o rodapé explica o critério de empate
 que o backend já aplica: colocação dividida e a seguinte pulada (1º, 2º, 2º,
 4º). Nada disso é recalculado no front.
 
+### 5.4 Agendar e editar pelada
+
+Um componente só atende as duas rotas (`peladas/nova` e `peladas/:id/editar`),
+porque o formulário é o mesmo: o que muda é ter ou não um id. Sem id o
+`resource` fica **ocioso** — `params` devolve `undefined` e nenhuma busca
+acontece —, e com id o formulário parte do que está gravado.
+
+A ordem das rotas importa: `peladas/nova` precisa vir **antes** de
+`peladas/:id`, senão "nova" seria lido como um id.
+
+Três regras do `PeladaServiceImpl` que a tela antecipa, em vez de deixar o
+organizador levar um erro:
+
+- **pelada encerrada não aceita alteração** — o aviso aparece e o botão trava;
+- **o início precisa estar no futuro, inclusive na edição** — uma pelada que já
+  começou só salva se a data e a hora forem remarcadas, e a tela diz isso;
+- **o limite não pode ficar abaixo dos confirmados** — o campo de vagas mostra
+  quantos já estão confirmados.
+
+Quando a API recusa mesmo assim, os erros por campo do `ErroResponse` aparecem
+junto da mensagem, aproveitando o `camposComErro` que o cadastro já usava.
+
+### 5.5 Situação da pelada
+
+Faltava uma ponta: a tela de súmula mandava "mude a situação da pelada quando a
+bola rolar", e não existia onde fazer isso — só pela API. O detalhe ganhou os
+botões de situação para o organizador, escondidos quando a pelada já está
+encerrada (daí não sair mais de finalizada ou cancelada).
+
+É o que amarra o fluxo: **em andamento** libera a súmula, e o sorteio deixa de
+valer quando a pelada finaliza ou é cancelada.
+
 ---
 
 ## 6. Testes
 
-44 testes em Vitest + jsdom, sem browser e sem backend. Eles cobrem justamente
+53 testes em Vitest + jsdom, sem browser e sem backend. Eles cobrem justamente
 o que quebra calado:
 
 | Suíte | Cobre |
@@ -212,6 +244,7 @@ o que quebra calado:
 | `sorteio.spec.ts` | Formulário escondido de quem não organiza, prévia da divisão, envio de **um só** critério, times/goleiro/reservas/semente desenhados, repetição pela semente, 409 na tela e botão travado com poucos confirmados |
 | `sumula.spec.ts` | Leitura pública sem formulário, quebra de pontos, aviso de pelada que não rolou, só confirmados no seletor, ficha trocando com a posição, `PUT` zerando o que não vale, `DELETE` e 409 na tela |
 | `rankings.spec.ts` | Limite padrão, recorte por pelada vindo da URL, classificação e destaques desenhados, e o estado vazio explicando que falta lançar súmula |
+| `pelada-formulario.spec.ts` | Criar sem buscar nada e com `POST`, editar carregando o gravado e com `PUT`, redirecionamento após salvar, formulário negado a quem não organiza, pelada encerrada travada, aviso de remarcar e de limite de confirmados, e o 409 na tela |
 | `app.spec.ts` | Header alternando entre "Entrar" e o nickname |
 
 Uma armadilha vale registro: `fixture.whenStable()` **trava** quando há
@@ -224,8 +257,10 @@ o template o lê de novo, o que no teste exige um `detectChanges()` explícito.
 
 ## 7. O que ficou
 
-- Criar e editar pelada pela interface (a API já aceita; falta a tela)
-- Campos de resposta chegam todos opcionais no TypeScript, porque o contrato só
-  marca `required` onde há `@NotNull`. Anotar os DTOs de resposta deixaria os
+O frontend cobre todos os endpoints que interessam ao uso diário. O que sobra
+não é tela, é infraestrutura:
+
+- servir o build do front pelo Compose, hoje fora do `docker compose up`
+- campos de resposta chegam todos opcionais no TypeScript, porque o contrato só
+  marca `required` onde há `@NotNull`; anotar os DTOs de resposta deixaria os
   tipos mais firmes
-- Servir o build do front pelo Compose, hoje fora do `docker compose up`

@@ -315,6 +315,8 @@ caminho. Fora do proxy, vale `CORS_ORIGENS` (padrão `http://localhost:4200`).
 | Login | `/login` | pública |
 | Cadastro de jogador | `/cadastro` | pública |
 | Peladas, com filtros e paginação | `/peladas` | pública, como a API |
+| Agendar pelada | `/peladas/nova` | exige login |
+| Editar pelada | `/peladas/:id/editar` | exige login; só o organizador edita |
 | Detalhe e escalação | `/peladas/:id` | pública; as ações exigem login |
 | Súmula da pelada | `/peladas/:id/sumula` | pública; lançar exige ser o organizador |
 | Sorteio de times | `/peladas/:id/sorteio` | exige login; só o organizador sorteia |
@@ -331,8 +333,8 @@ cd frontend && npm run gen:api     # exige a API no ar
 Mudou um DTO ou um endpoint no backend? Regere e o `ng build` aponta o que
 quebrou — em vez de a divergência aparecer só em produção.
 
-> O frontend cobre o ciclo completo da pelada. O que ainda não tem tela é
-> criar e editar pelada — a API já aceita. Detalhes no
+> O frontend cobre o ciclo completo: agendar, escalar, sortear, lançar súmula e
+> acompanhar os rankings. Detalhes no
 > [passo 06](tasks/passo-06-frontend-angular.md).
 
 ---
@@ -878,8 +880,8 @@ compilam. A transação é desfeita ao fim de cada teste, então nada sobra na b
 - [x] Documentação interativa com OpenAPI / Swagger UI
 - [ ] Persistência opcional do sorteio, para manter o histórico de times de cada pelada
 - [ ] Cobertura de testes nos services e nos controllers
-- [x] Frontend: login, cadastro, peladas, escalação, sorteio, súmula e rankings
-- [ ] Frontend: criar e editar pelada pela interface
+- [x] Frontend: ciclo completo — agendar e editar pelada, escalação, sorteio, súmula e rankings
+- [ ] Servir o build do frontend pelo Docker Compose
 - [x] Perfis de configuração (`dev`, `test`, `prod`) com `application-{perfil}.yaml`
 - [x] Containerização com Docker Compose (aplicação + MySQL)
 

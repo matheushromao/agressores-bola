@@ -3,11 +3,20 @@
     <h1 class="text-2xl font-bold tracking-tight">
       {{ somenteMinhas ? 'Minhas peladas' : 'Peladas' }}
     </h1>
-    @if (pagina.hasValue()) {
-      <p class="text-sm text-slate-600 dark:text-slate-400">
-        {{ pagina.value().totalElementos }} encontrada(s)
-      </p>
-    }
+    <div class="flex items-center gap-4">
+      @if (pagina.hasValue()) {
+        <p class="text-sm text-slate-600 dark:text-slate-400">
+          {{ pagina.value().totalElementos }} encontrada(s)
+        </p>
+      }
+      @if (auth.autenticado()) {
+        <a
+          routerLink="/peladas/nova"
+          class="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
+          >Agendar pelada</a
+        >
+      }
+    </div>
   </header>
 
   <form

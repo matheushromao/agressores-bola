@@ -40,5 +40,6 @@ src/app/
   api/         cliente gerado do OpenAPI (não editar)
   core/        sessão, interceptor de token, guard e tradução de erros
   shared/      rótulos de enum e formatação de data/hora
-  paginas/     login, cadastro, peladas (lista, detalhe, sorteio, súmula) e rankings
+  paginas/     login, cadastro, peladas (lista, formulário, detalhe, sorteio,
+               súmula) e rankings
 ```

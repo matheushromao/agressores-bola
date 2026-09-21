@@ -155,6 +155,27 @@ describe('PeladaDetalhe', () => {
     httpTesting.verify();
   });
 
+  it('o organizador muda a situação da pelada, que é o que libera súmula e sorteio', async () => {
+    entrarComo(99);
+    const { harness, httpTesting, texto } = await abrirDetalhe();
+
+    expect(texto()).toContain('Situação da pelada');
+    botao(harness, 'Em andamento')!.click();
+    await volta();
+
+    const patch = httpTesting.expectOne(
+      (r) => r.method === 'PATCH' && r.url === '/api/peladas/1/status',
+    );
+    expect(patch.request.body).toEqual({ status: 'EM_ANDAMENTO' });
+    patch.flush({ ...PELADA, status: 'EM_ANDAMENTO', statusDescricao: 'Em andamento' });
+    await volta();
+    harness.detectChanges();
+    await volta();
+    httpTesting.expectOne('/api/peladas/1').flush(PELADA);
+    await harness.fixture.whenStable();
+    httpTesting.verify();
+  });
+
   it('só o organizador vê os controles sobre os outros jogadores', async () => {
     entrarComo(99);
     const { harness, httpTesting } = await abrirDetalhe();
