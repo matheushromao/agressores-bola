@@ -316,6 +316,7 @@ caminho. Fora do proxy, vale `CORS_ORIGENS` (padrão `http://localhost:4200`).
 | Cadastro de jogador | `/cadastro` | pública |
 | Peladas, com filtros e paginação | `/peladas` | pública, como a API |
 | Detalhe e escalação | `/peladas/:id` | pública; as ações exigem login |
+| Sorteio de times | `/peladas/:id/sorteio` | exige login; só o organizador sorteia |
 | Minhas peladas | `/minhas-peladas` | exige login |
 
 **O cliente da API é gerado, não escrito.** Os tipos e as funções de chamada em
@@ -328,7 +329,7 @@ cd frontend && npm run gen:api     # exige a API no ar
 Mudou um DTO ou um endpoint no backend? Regere e o `ng build` aponta o que
 quebrou — em vez de a divergência aparecer só em produção.
 
-> Escopo atual: autenticação e peladas. Sorteio, súmula e rankings estão no
+> Escopo atual: autenticação, peladas e sorteio. Súmula e rankings estão no
 > [passo 06](tasks/passo-06-frontend-angular.md).
 
 ---
@@ -873,8 +874,8 @@ compilam. A transação é desfeita ao fim de cada teste, então nada sobra na b
 - [x] Documentação interativa com OpenAPI / Swagger UI
 - [ ] Persistência opcional do sorteio, para manter o histórico de times de cada pelada
 - [ ] Cobertura de testes nos services e nos controllers
-- [x] Frontend: login, cadastro, lista de peladas e detalhe com confirmação de presença
-- [ ] Frontend: sorteio, súmula e rankings
+- [x] Frontend: login, cadastro, lista de peladas, detalhe com confirmação de presença e sorteio
+- [ ] Frontend: súmula e rankings
 - [x] Perfis de configuração (`dev`, `test`, `prod`) com `application-{perfil}.yaml`
 - [x] Containerização com Docker Compose (aplicação + MySQL)
 

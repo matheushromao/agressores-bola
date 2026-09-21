@@ -12,7 +12,7 @@ arquivo aqui, descrevendo **o que foi feito**, **por quê** e **como usar**.
 | 3 | [passo-03-estatisticas-ranking-e-sorteio.md](passo-03-estatisticas-ranking-e-sorteio.md) | Súmula por jogador, tabela de pontuação, rankings agregados e sorteio de times equilibrado por estrelas |
 | 4 | [passo-04-auditoria-de-camadas-e-testes-de-endpoints.md](passo-04-auditoria-de-camadas-e-testes-de-endpoints.md) | Auditoria de SOLID/MVC camada a camada, exercício de todos os endpoints via HTTP (132 verificações) e roteiro dos próximos passos |
 | 5 | [passo-05-infraestrutura-seguranca-e-frontend.md](passo-05-infraestrutura-seguranca-e-frontend.md) | Roteiro priorizado: Flyway e perfis, Docker Compose e Testcontainers, Spring Security com JWT, OpenAPI e, por fim, o frontend |
-| 6 | [passo-06-frontend-angular.md](passo-06-frontend-angular.md) | SPA em Angular com cliente gerado do OpenAPI: login, cadastro, lista de peladas com filtros e detalhe com confirmação de presença |
+| 6 | [passo-06-frontend-angular.md](passo-06-frontend-angular.md) | SPA em Angular com cliente gerado do OpenAPI: login, cadastro, lista de peladas, detalhe com confirmação de presença e sorteio de times |
 
 ## Sobre o projeto
 

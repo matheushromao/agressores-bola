@@ -28,6 +28,14 @@ export const routes: Routes = [
     loadComponent: () => import('./paginas/peladas/pelada-detalhe').then((m) => m.PeladaDetalhe),
   },
 
+  // Só o organizador sorteia (a API devolve 403), mas o mínimo é estar logado.
+  {
+    path: 'peladas/:id/sorteio',
+    title: 'Sorteio · Agressores da Bola',
+    canActivate: [authGuard],
+    loadComponent: () => import('./paginas/peladas/sorteio').then((m) => m.Sorteio),
+  },
+
   // Mesma tela da listagem, fixada no organizador do token — daí o guard.
   {
     path: 'minhas-peladas',

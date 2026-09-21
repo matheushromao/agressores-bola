@@ -394,7 +394,7 @@ Etapa 5 — Frontend (Angular; ver passo 06)
   [x] login e cadastro
   [x] lista de peladas com filtros e paginação
   [x] detalhe e confirmação de presença
-  [ ] tela de sorteio
+  [x] tela de sorteio
   [ ] súmula e rankings
 
 Extra

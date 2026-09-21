@@ -1,6 +1,6 @@
 # Passo 6 — Frontend Angular: autenticação e peladas
 
-**Status:** fatia 1 entregue — login, cadastro, lista e detalhe
+**Status:** login, cadastro, lista, detalhe e sorteio entregues
 **Base:** commit `e49c1ed` (documentação OpenAPI)
 
 ---
@@ -12,9 +12,9 @@ a última do roteiro. A ordem defendida lá se cumpriu: o frontend chegou depois
 de ambiente reprodutível, schema versionado, autenticação definida e **contrato
 formal** — e é esse contrato que dispensou reescrever os 28 DTOs à mão.
 
-Escopo desta fatia: **login, cadastro, lista de peladas com filtros e paginação,
-e detalhe com confirmação de presença.** Sorteio, súmula e rankings ficam para
-a fatia 2.
+Escopo entregue: **login, cadastro, lista de peladas com filtros e paginação,
+detalhe com confirmação de presença** e a **tela de sorteio**. Súmula e
+rankings ficam para a próxima fatia.
 
 ---
 
@@ -122,11 +122,42 @@ A rota `/minhas-peladas` reaproveita o componente da listagem fixando
 `organizadorId` com o id do token. É o que dá uso real ao `authGuard`: as
 listagens e o detalhe são públicos na API, e continuam públicos aqui.
 
+### 5.1 Sorteio
+
+A regra que molda a tela inteira está em `SorteioServiceImpl`: **só o
+organizador sorteia** (403 para os demais), **só quem confirmou presença
+entra** — convidado e lista de espera não são jogadores da pelada ainda — e o
+critério é `quantidadeTimes` **ou** `jogadoresPorTime`, nunca os dois (o
+`@AssertTrue` de `SorteioRequest` recusa o par, com 400).
+
+Três decisões de interface saíram daí:
+
+1. **Quem não organiza vê o motivo, não um botão que falha.** A tela checa o
+   organizador com o id do token e mostra de quem é a pelada.
+2. **Prévia antes de chamar.** Com os confirmados em mãos, a tela já diz
+   "vai formar 2 times de 5 e deixar 1 de reserva", e desabilita o botão quando
+   a divisão é impossível. O backend continua sendo quem decide — a prévia só
+   evita que o organizador descubra no erro.
+3. **A semente é exposta.** Ela volta na resposta, aparece embaixo do
+   resultado e alimenta "Repetir este sorteio"; "Sortear de novo" limpa o
+   campo. É o que transforma um detalhe do algoritmo em recurso de uso real:
+   refazer no celular a divisão já combinada em quadra.
+
+O resultado mostra os times lado a lado com soma e média de estrelas, marca o
+goleiro (🧤), avisa quando um time ficou **sem goleiro**, lista as reservas
+explicando por que elas existem (time com um jogador a mais nasce em vantagem)
+e classifica a diferença de estrelas entre o time mais forte e o mais fraco.
+
+> Uma aspereza encontrada, que ficou no backend: pedir 6 jogadores por time com
+> 10 confirmados cai no primeiro ramo de `validarDivisao` e responde *"é preciso
+> pelo menos 4 para formar 2 times de 2"* — verdadeiro, mas não é o que faltou.
+> A prévia da tela evita o caso; a mensagem em si merece um ajuste.
+
 ---
 
 ## 6. Testes
 
-21 testes em Vitest + jsdom, sem browser e sem backend. Eles cobrem justamente
+29 testes em Vitest + jsdom, sem browser e sem backend. Eles cobrem justamente
 o que quebra calado:
 
 | Suíte | Cobre |
@@ -135,6 +166,7 @@ o que quebra calado:
 | `auth.interceptor.spec.ts` | Header anexado só quando há sessão, logout no 401, sessão preservada nos demais erros |
 | `peladas-lista.spec.ts` | Query string virando parâmetro da chamada, formulário reabastecido pela URL, estado vazio |
 | `pelada-detalhe.spec.ts` | Escalação agrupada, ação bloqueada para quem não está logado, `POST` com o id do token, recarga após a ação, controles só para o organizador, erro 409 visível na tela |
+| `sorteio.spec.ts` | Formulário escondido de quem não organiza, prévia da divisão, envio de **um só** critério, times/goleiro/reservas/semente desenhados, repetição pela semente, 409 na tela e botão travado com poucos confirmados |
 | `app.spec.ts` | Header alternando entre "Entrar" e o nickname |
 
 Uma armadilha vale registro: `fixture.whenStable()` **trava** quando há
@@ -145,10 +177,9 @@ o template o lê de novo, o que no teste exige um `detectChanges()` explícito.
 
 ---
 
-## 7. O que ficou para a fatia 2
+## 7. O que ficou para a próxima fatia
 
 - Criar e editar pelada pela interface (a API já aceita; falta a tela)
-- Tela de sorteio com os times lado a lado — a mais gratificante visualmente
 - Súmula e rankings
 - Campos de resposta chegam todos opcionais no TypeScript, porque o contrato só
   marca `required` onde há `@NotNull`. Anotar os DTOs de resposta deixaria os
