@@ -1,0 +1,157 @@
+<section>
+  <a routerLink="/peladas" class="text-sm text-slate-600 hover:underline dark:text-slate-400">← Todas as peladas</a>
+
+  @if (pelada.isLoading()) {
+    <p class="mt-8 text-sm text-slate-600 dark:text-slate-400">Carregando pelada…</p>
+  } @else if (pelada.error(); as falha) {
+    <div
+      role="alert"
+      class="mt-8 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300"
+    >
+      <p>{{ mensagemDeErro(falha, 'Não foi possível carregar esta pelada') }}</p>
+      <button type="button" (click)="pelada.reload()" class="mt-2 font-semibold underline">Tentar de novo</button>
+    </div>
+  } @else if (pelada.value(); as jogo) {
+    <header class="mt-4 flex flex-wrap items-start justify-between gap-3">
+      <div>
+        <h1 class="text-2xl font-bold tracking-tight">{{ jogo.nome }}</h1>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">
+          {{ dataBr(jogo.data) }} · {{ hora(jogo.horaInicio) }}–{{ hora(jogo.horaFim) }}
+        </p>
+      </div>
+      <span class="rounded-full px-3 py-1 text-xs font-semibold" [class]="corDoStatus(jogo.status)">
+        {{ jogo.statusDescricao }}
+      </span>
+    </header>
+
+    @if (jogo.descricao) {
+      <p class="mt-4 text-sm text-slate-700 dark:text-slate-300">{{ jogo.descricao }}</p>
+    }
+
+    <dl class="mt-5 grid gap-4 rounded-lg border border-slate-200 bg-white p-4 text-sm sm:grid-cols-2 lg:grid-cols-4 dark:border-slate-800 dark:bg-slate-900">
+      <div>
+        <dt class="text-xs text-slate-500">Local</dt>
+        <dd class="font-medium">{{ jogo.localNome }}</dd>
+        <dd class="text-slate-600 dark:text-slate-400">{{ jogo.endereco }}</dd>
+        <dd class="text-slate-600 dark:text-slate-400">{{ jogo.cidade }}/{{ jogo.estado }}</dd>
+      </div>
+      <div>
+        <dt class="text-xs text-slate-500">Campo</dt>
+        <dd class="font-medium">{{ jogo.tipoCampoDescricao }}</dd>
+      </div>
+      <div>
+        <dt class="text-xs text-slate-500">Vagas</dt>
+        <dd class="font-medium">{{ jogo.vagasRestantes }} livres de {{ jogo.maxParticipantes }}</dd>
+        <dd class="text-slate-600 dark:text-slate-400">{{ jogo.totalConfirmados }} confirmados</dd>
+      </div>
+      <div>
+        <dt class="text-xs text-slate-500">Organizador</dt>
+        <dd class="font-medium">{{ jogo.organizador?.nickname }}</dd>
+        @if (jogo.valorPorJogador) {
+          <dt class="mt-2 text-xs text-slate-500">Valor por jogador</dt>
+          <dd class="font-medium">R$ {{ jogo.valorPorJogador }}</dd>
+        }
+      </div>
+    </dl>
+
+    <!-- Ações do jogador logado -->
+    <div class="mt-5 flex flex-wrap items-center gap-3">
+      @if (!auth.autenticado()) {
+        <a
+          routerLink="/login"
+          [queryParams]="{ redirect: '/peladas/' + id() }"
+          class="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
+        >
+          Entrar para confirmar presença
+        </a>
+      } @else if (minhaParticipacao(); as minha) {
+        <span class="text-sm text-slate-600 dark:text-slate-400">
+          Você está nesta pelada como <strong class="text-slate-900 dark:text-slate-100">{{ minha.statusDescricao }}</strong>.
+        </span>
+        <button
+          type="button"
+          [disabled]="agindo()"
+          (click)="sairDaPelada()"
+          class="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium hover:bg-slate-100 disabled:opacity-60 dark:border-slate-700 dark:hover:bg-slate-800"
+        >
+          Sair da pelada
+        </button>
+      } @else {
+        <button
+          type="button"
+          [disabled]="agindo()"
+          (click)="confirmarPresenca()"
+          class="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-60"
+        >
+          Confirmar presença
+        </button>
+        @if (!jogo.vagasRestantes) {
+          <span class="text-sm text-amber-700 dark:text-amber-400">Sem vagas — você entra na lista de espera.</span>
+        }
+      }
+    </div>
+
+    @if (erroDaAcao(); as falha) {
+      <p
+        role="alert"
+        class="mt-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300"
+      >
+        {{ falha }}
+      </p>
+    }
+
+    <!-- Escalação -->
+    <h2 class="mt-8 text-lg font-semibold">Escalação</h2>
+    @if (grupos().length) {
+      <div class="mt-3 grid gap-4 sm:grid-cols-2">
+        @for (grupo of grupos(); track grupo.status) {
+          <div class="rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+            <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-300">
+              {{ grupo.rotulo }} <span class="font-normal text-slate-500">({{ grupo.jogadores.length }})</span>
+            </h3>
+            <ul class="mt-2 divide-y divide-slate-100 text-sm dark:divide-slate-800">
+              @for (participante of grupo.jogadores; track participante.participacaoId) {
+                <li class="flex flex-wrap items-center justify-between gap-2 py-2">
+                  <span>
+                    <strong class="font-medium">{{ participante.usuario?.nickname }}</strong>
+                    <span class="text-slate-500"> · {{ participante.usuario?.posicaoDescricao }}</span>
+                    <span class="text-slate-500"> · {{ participante.usuario?.estrelas }}★</span>
+                  </span>
+
+                  @if (souOrganizador() && participante.usuario?.id !== auth.usuarioId()) {
+                    <span class="flex gap-1">
+                      @if (grupo.status !== 'CONFIRMADO') {
+                        <button
+                          type="button"
+                          [disabled]="agindo()"
+                          (click)="alterarStatus(participante.usuario!.id!, 'CONFIRMADO')"
+                          class="rounded border border-emerald-300 px-2 py-0.5 text-xs font-medium text-emerald-800 hover:bg-emerald-50 disabled:opacity-60 dark:border-emerald-800 dark:text-emerald-300 dark:hover:bg-emerald-950"
+                        >
+                          Confirmar
+                        </button>
+                      }
+                      @if (grupo.status !== 'RECUSADO') {
+                        <button
+                          type="button"
+                          [disabled]="agindo()"
+                          (click)="alterarStatus(participante.usuario!.id!, 'RECUSADO')"
+                          class="rounded border border-slate-300 px-2 py-0.5 text-xs font-medium hover:bg-slate-100 disabled:opacity-60 dark:border-slate-700 dark:hover:bg-slate-800"
+                        >
+                          Recusar
+                        </button>
+                      }
+                    </span>
+                  }
+                </li>
+              }
+            </ul>
+          </div>
+        }
+      </div>
+    } @else {
+      <p class="mt-3 rounded-lg border border-dashed border-slate-300 p-6 text-center text-sm text-slate-600 dark:border-slate-700 dark:text-slate-400">
+        Ninguém escalado ainda. Seja o primeiro.
+      </p>
+    }
+  }
+</section>

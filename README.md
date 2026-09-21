@@ -19,6 +19,7 @@ equilibrados por nível técnico.
 - [Modelo de domínio](#modelo-de-domínio)
 - [Configuração e execução](#configuração-e-execução)
 - [Documentação interativa](#documentação-interativa)
+- [Frontend](#frontend)
 - [Segurança](#segurança)
 - [API](#api)
   - [Usuários](#usuários)
@@ -62,6 +63,7 @@ O projeto resolve o ciclo completo de uma pelada recreativa:
 | Persistência | Hibernate ORM / JPA, MySQL 8 |
 | Consultas dinâmicas | JPA Criteria API via `Specification` |
 | Documentação da API | springdoc-openapi 3.1.1 (OpenAPI 3.1 + Swagger UI) |
+| Frontend | Angular 22 + Tailwind CSS 4, com cliente gerado do contrato OpenAPI |
 | Boilerplate | Lombok |
 | Build | Maven Wrapper |
 | Testes | JUnit 5, AssertJ, slices de teste do Spring Boot |
@@ -293,6 +295,44 @@ vez de reescrever os DTOs à mão.
 
 ---
 
+## Frontend
+
+SPA em **Angular 22** na pasta [`frontend/`](frontend), consumindo esta API.
+Standalone components, signals e `resource()`; estilo com Tailwind CSS 4.
+
+```bash
+docker compose up -d        # a API, na 8080
+cd frontend && npm install
+npm start                   # http://localhost:4200
+```
+
+O `proxy.conf.json` encaminha `/api` e `/v3` para a 8080, então em
+desenvolvimento o browser fala só com a origem 4200 e o CORS não entra no
+caminho. Fora do proxy, vale `CORS_ORIGENS` (padrão `http://localhost:4200`).
+
+| Tela | Rota | Acesso |
+|---|---|---|
+| Login | `/login` | pública |
+| Cadastro de jogador | `/cadastro` | pública |
+| Peladas, com filtros e paginação | `/peladas` | pública, como a API |
+| Detalhe e escalação | `/peladas/:id` | pública; as ações exigem login |
+| Minhas peladas | `/minhas-peladas` | exige login |
+
+**O cliente da API é gerado, não escrito.** Os tipos e as funções de chamada em
+`frontend/src/app/api` saem do contrato OpenAPI:
+
+```bash
+cd frontend && npm run gen:api     # exige a API no ar
+```
+
+Mudou um DTO ou um endpoint no backend? Regere e o `ng build` aponta o que
+quebrou — em vez de a divergência aparecer só em produção.
+
+> Escopo atual: autenticação e peladas. Sorteio, súmula e rankings estão no
+> [passo 06](tasks/passo-06-frontend-angular.md).
+
+---
+
 ## Segurança
 
 ### O que já está em prática
@@ -324,6 +364,9 @@ exposta publicamente.**
 - **Sem refresh token nem revogação.** O token vale até expirar (2 horas); trocar a senha
   não derruba tokens já emitidos.
 - **`show-sql: true`** joga as consultas no log; por isso fica só no perfil `dev`.
+- **Token no `localStorage` do frontend**, e portanto vulnerável a XSS. É a escolha
+  pragmática para uma SPA sem *backend-for-frontend*; um cookie `HttpOnly` exigiria
+  uma camada servidora só para o front.
 
 ### Recomendações operacionais
 
@@ -830,6 +873,8 @@ compilam. A transação é desfeita ao fim de cada teste, então nada sobra na b
 - [x] Documentação interativa com OpenAPI / Swagger UI
 - [ ] Persistência opcional do sorteio, para manter o histórico de times de cada pelada
 - [ ] Cobertura de testes nos services e nos controllers
+- [x] Frontend: login, cadastro, lista de peladas e detalhe com confirmação de presença
+- [ ] Frontend: sorteio, súmula e rankings
 - [x] Perfis de configuração (`dev`, `test`, `prod`) com `application-{perfil}.yaml`
 - [x] Containerização com Docker Compose (aplicação + MySQL)
 

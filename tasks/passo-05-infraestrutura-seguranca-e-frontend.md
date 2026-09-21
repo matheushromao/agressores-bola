@@ -1,6 +1,6 @@
 # Passo 5 — Infraestrutura, segurança e o caminho até o frontend
 
-**Status:** etapas 1 a 4 aplicadas; falta o frontend (etapa 5)
+**Status:** etapas 1 a 4 aplicadas; etapa 5 em andamento (ver [passo 06](passo-06-frontend-angular.md))
 **Base:** commit `db41f19` (posições de futsal)
 
 ---
@@ -390,10 +390,10 @@ Etapa 4 — OpenAPI
   [x] desligado no perfil prod
   [x] DocumentacaoOpenApiTest cobrindo o contrato
 
-Etapa 5 — Frontend
-  [ ] login e cadastro
-  [ ] lista de peladas com filtros e paginação
-  [ ] detalhe e confirmação de presença
+Etapa 5 — Frontend (Angular; ver passo 06)
+  [x] login e cadastro
+  [x] lista de peladas com filtros e paginação
+  [x] detalhe e confirmação de presença
   [ ] tela de sorteio
   [ ] súmula e rankings
 

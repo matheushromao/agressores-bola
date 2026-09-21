@@ -29,6 +29,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -40,7 +41,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/peladas")
+@RequestMapping(value = "/api/peladas", produces = MediaType.APPLICATION_JSON_VALUE)
 @RequiredArgsConstructor
 @Tag(name = "Peladas", description = "Agendamento das partidas e escalação dos jogadores")
 public class PeladaController {
@@ -54,7 +55,7 @@ public class PeladaController {
     /**
      * O organizador é sempre quem está logado — não vem no corpo.
      */
-    @Operation(summary = "Agenda uma pelada",
+    @Operation(operationId = "criarPelada", summary = "Agenda uma pelada",
             description = "O organizador é sempre o usuário autenticado: não vem no corpo da "
                     + "requisição e por isso não pode ser forjado.")
     @ApiResponse(responseCode = "201", description = "Pelada criada; o Location aponta para ela")
@@ -74,7 +75,7 @@ public class PeladaController {
      * Listagem paginada com filtros opcionais:
      * {@code ?cidade=Sorocaba&status=AGENDADA&page=0&size=10&sort=data,asc}.
      */
-    @Operation(summary = "Lista peladas com filtros e paginação",
+    @Operation(operationId = "listarPeladas", summary = "Lista peladas com filtros e paginação",
             description = "Endpoint público. Os filtros são combináveis e todos opcionais; sem "
                     + "ordenação explícita o resultado vem por data e hora de início.")
     @ApiResponse(responseCode = "200", description = "Página de peladas")
@@ -104,7 +105,7 @@ public class PeladaController {
         return ResponseEntity.ok(peladaService.listar(filtro, pageable));
     }
 
-    @Operation(summary = "Detalha uma pelada", description = "Endpoint público.")
+    @Operation(operationId = "buscarPelada", summary = "Detalha uma pelada", description = "Endpoint público.")
     @ApiResponse(responseCode = "200", description = "Pelada encontrada")
     @RespostaNaoEncontrado
     @SecurityRequirements
@@ -113,7 +114,7 @@ public class PeladaController {
         return ResponseEntity.ok(peladaService.buscarPorId(id));
     }
 
-    @Operation(summary = "Atualiza os dados da pelada",
+    @Operation(operationId = "atualizarPelada", summary = "Atualiza os dados da pelada",
             description = "Só o organizador da pelada pode alterá-la.")
     @ApiResponse(responseCode = "200", description = "Pelada atualizada")
     @RespostaDadosInvalidos
@@ -126,7 +127,7 @@ public class PeladaController {
         return ResponseEntity.ok(peladaService.atualizar(id, request, UsuarioLogado.id(jwt)));
     }
 
-    @Operation(summary = "Altera a situação da pelada",
+    @Operation(operationId = "alterarStatusPelada", summary = "Altera a situação da pelada",
             description = "Transições aceitas: AGENDADA para EM_ANDAMENTO, EM_ANDAMENTO para "
                     + "FINALIZADA, e CANCELADA a partir das duas primeiras.")
     @ApiResponse(responseCode = "200", description = "Situação alterada")
@@ -140,7 +141,7 @@ public class PeladaController {
         return ResponseEntity.ok(peladaService.alterarStatus(id, request.status(), UsuarioLogado.id(jwt)));
     }
 
-    @Operation(summary = "Apaga a pelada", description = "Só o organizador pode apagar.")
+    @Operation(operationId = "deletarPelada", summary = "Apaga a pelada", description = "Só o organizador pode apagar.")
     @ApiResponse(responseCode = "204", description = "Pelada apagada")
     @RespostaNaoEncontrado
     @DeleteMapping("/{id}")
@@ -153,7 +154,7 @@ public class PeladaController {
      * Escalação (o "grupo" da pelada)
      * ------------------------------------------------------------------ */
 
-    @Operation(summary = "Lista a escalação",
+    @Operation(operationId = "listarParticipantes", summary = "Lista a escalação",
             description = "Endpoint público. Traz convidados, confirmados e a lista de espera.")
     @ApiResponse(responseCode = "200", description = "Escalação da pelada")
     @RespostaNaoEncontrado
@@ -163,7 +164,7 @@ public class PeladaController {
         return ResponseEntity.ok(peladaService.listarParticipantes(id));
     }
 
-    @Operation(summary = "Escala um jogador",
+    @Operation(operationId = "adicionarParticipante", summary = "Escala um jogador",
             description = "Sem vaga livre o jogador entra na lista de espera e é promovido "
                     + "automaticamente quando alguém desiste.")
     @ApiResponse(responseCode = "201", description = "Jogador escalado ou posto em espera")
@@ -183,7 +184,7 @@ public class PeladaController {
         return ResponseEntity.created(location).body(response);
     }
 
-    @Operation(summary = "Altera a participação de um jogador",
+    @Operation(operationId = "alterarStatusParticipacao", summary = "Altera a participação de um jogador",
             description = "O próprio jogador muda a sua participação; o organizador muda a de qualquer um.")
     @ApiResponse(responseCode = "200", description = "Participação atualizada")
     @RespostaDadosInvalidos
@@ -199,7 +200,7 @@ public class PeladaController {
                 id, usuarioId, request.status(), UsuarioLogado.id(jwt)));
     }
 
-    @Operation(summary = "Remove um jogador da escalação",
+    @Operation(operationId = "removerParticipante", summary = "Remove um jogador da escalação",
             description = "Libera a vaga e promove o primeiro da lista de espera, se houver.")
     @ApiResponse(responseCode = "204", description = "Jogador removido")
     @RespostaNaoEncontrado

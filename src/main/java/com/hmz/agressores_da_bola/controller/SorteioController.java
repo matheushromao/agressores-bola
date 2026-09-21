@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -22,7 +23,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/peladas/{peladaId}/sorteio")
+@RequestMapping(value = "/api/peladas/{peladaId}/sorteio", produces = MediaType.APPLICATION_JSON_VALUE)
 @RequiredArgsConstructor
 @Tag(name = "Sorteio", description = "Divisão dos confirmados em times equilibrados por estrelas")
 public class SorteioController {
@@ -33,7 +34,7 @@ public class SorteioController {
      * POST mesmo sem gravar nada: cada chamada produz uma divisão diferente,
      * então a operação não é idempotente como um GET precisaria ser.
      */
-    @Operation(summary = "Sorteia os times da pelada",
+    @Operation(operationId = "sortearTimes", summary = "Sorteia os times da pelada",
             description = "Divide os jogadores confirmados equilibrando a soma de estrelas e "
                     + "distribuindo um goleiro por time. Nada é gravado: cada chamada produz "
                     + "uma divisão diferente, e é por isso que o verbo é POST e não GET.")

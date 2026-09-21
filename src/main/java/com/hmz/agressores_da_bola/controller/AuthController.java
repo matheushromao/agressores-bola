@@ -16,6 +16,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -29,14 +30,14 @@ import java.net.URI;
  * Rotas públicas de entrada: cadastro e login.
  */
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping(value = "/api/auth", produces = MediaType.APPLICATION_JSON_VALUE)
 @RequiredArgsConstructor
 @Tag(name = "Autenticação", description = "Cadastro de jogador e emissão do token JWT")
 public class AuthController {
 
     private final AuthService authService;
 
-    @Operation(summary = "Cadastra um jogador",
+    @Operation(operationId = "cadastrar", summary = "Cadastra um jogador",
             description = "Cria o perfil com a senha já codificada em BCrypt. "
                     + "A senha nunca volta em nenhuma resposta da API.")
     @ApiResponse(responseCode = "201", description = "Jogador cadastrado; o Location aponta para o perfil")
@@ -53,7 +54,7 @@ public class AuthController {
         return ResponseEntity.created(location).body(response);
     }
 
-    @Operation(summary = "Autentica e devolve o token",
+    @Operation(operationId = "login", summary = "Autentica e devolve o token",
             description = "Use o token no botão **Authorize** ou no cabeçalho "
                     + "`Authorization: Bearer <token>`.")
     @ApiResponse(responseCode = "200", description = "Token emitido")

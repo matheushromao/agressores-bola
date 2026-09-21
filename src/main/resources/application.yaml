@@ -36,7 +36,7 @@ app:
     expiracao: PT2H
   cors:
     # Origens do frontend autorizadas, separadas por vírgula
-    origens: ${CORS_ORIGENS:http://localhost:5173}
+    origens: ${CORS_ORIGENS:http://localhost:4200}
 
 springdoc:
   api-docs:

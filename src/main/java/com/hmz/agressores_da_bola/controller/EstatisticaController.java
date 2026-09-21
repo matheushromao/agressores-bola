@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -27,7 +28,7 @@ import java.util.List;
  * gestão do jogo com a gestão dos números.
  */
 @RestController
-@RequestMapping("/api/peladas/{peladaId}")
+@RequestMapping(value = "/api/peladas/{peladaId}", produces = MediaType.APPLICATION_JSON_VALUE)
 @RequiredArgsConstructor
 @Tag(name = "Estatísticas",
         description = "Súmula da partida: gols, assistências, desarmes e defesas por jogador. "
@@ -39,7 +40,7 @@ public class EstatisticaController {
     /**
      * Súmula completa da pelada, já ordenada por pontuação.
      */
-    @Operation(summary = "Lista a súmula da pelada",
+    @Operation(operationId = "listarEstatisticas", summary = "Lista a súmula da pelada",
             description = "Endpoint público, já ordenado por pontuação.")
     @ApiResponse(responseCode = "200", description = "Súmula da pelada")
     @RespostaNaoEncontrado
@@ -49,7 +50,7 @@ public class EstatisticaController {
         return ResponseEntity.ok(estatisticaService.listarDaPelada(peladaId));
     }
 
-    @Operation(summary = "Busca a súmula de um jogador na pelada",
+    @Operation(operationId = "buscarEstatistica", summary = "Busca a súmula de um jogador na pelada",
             description = "Endpoint público.")
     @ApiResponse(responseCode = "200", description = "Súmula do jogador")
     @RespostaNaoEncontrado
@@ -64,7 +65,7 @@ public class EstatisticaController {
      * PUT e não POST: a súmula de um jogador na pelada é única, então lançar
      * de novo corrige o lançamento anterior em vez de criar outro.
      */
-    @Operation(summary = "Lança ou corrige a súmula de um jogador",
+    @Operation(operationId = "registrarEstatistica", summary = "Lança ou corrige a súmula de um jogador",
             description = "PUT e não POST: a súmula é única por jogador na pelada, então lançar "
                     + "de novo corrige o lançamento anterior. Atributos de goleiro só valem para "
                     + "quem está escalado no gol.")
@@ -80,7 +81,7 @@ public class EstatisticaController {
         return ResponseEntity.ok(estatisticaService.registrar(peladaId, usuarioId, request, UsuarioLogado.id(jwt)));
     }
 
-    @Operation(summary = "Apaga a súmula de um jogador")
+    @Operation(operationId = "removerEstatistica", summary = "Apaga a súmula de um jogador")
     @ApiResponse(responseCode = "204", description = "Súmula apagada")
     @RespostaNaoEncontrado
     @DeleteMapping("/participantes/{usuarioId}/estatistica")

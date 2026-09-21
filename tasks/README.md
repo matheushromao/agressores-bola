@@ -12,6 +12,7 @@ arquivo aqui, descrevendo **o que foi feito**, **por quê** e **como usar**.
 | 3 | [passo-03-estatisticas-ranking-e-sorteio.md](passo-03-estatisticas-ranking-e-sorteio.md) | Súmula por jogador, tabela de pontuação, rankings agregados e sorteio de times equilibrado por estrelas |
 | 4 | [passo-04-auditoria-de-camadas-e-testes-de-endpoints.md](passo-04-auditoria-de-camadas-e-testes-de-endpoints.md) | Auditoria de SOLID/MVC camada a camada, exercício de todos os endpoints via HTTP (132 verificações) e roteiro dos próximos passos |
 | 5 | [passo-05-infraestrutura-seguranca-e-frontend.md](passo-05-infraestrutura-seguranca-e-frontend.md) | Roteiro priorizado: Flyway e perfis, Docker Compose e Testcontainers, Spring Security com JWT, OpenAPI e, por fim, o frontend |
+| 6 | [passo-06-frontend-angular.md](passo-06-frontend-angular.md) | SPA em Angular com cliente gerado do OpenAPI: login, cadastro, lista de peladas com filtros e detalhe com confirmação de presença |
 
 ## Sobre o projeto
 
@@ -19,9 +20,11 @@ API REST para organização de peladas (futebol amador), inspirada no app
 **Appito**: o usuário cria uma partida com data, horário, local e valor, e
 monta o grupo de jogadores que vai jogar.
 
-**Stack:** Java 25 · Spring Boot 4.1.0 · Spring Data JPA · Bean Validation ·
+**Backend:** Java 25 · Spring Boot 4.1.0 · Spring Data JPA · Bean Validation ·
 Spring Security (JWT) · Flyway · springdoc-openapi · MySQL 8 · Docker ·
 Testcontainers · Lombok · Maven
+
+**Frontend:** Angular 22 · Tailwind CSS 4 · cliente gerado do contrato OpenAPI
 
 ## Arquitetura
 
@@ -49,6 +52,8 @@ tudo entra e sai como DTO.
 ## Como rodar
 
 ```bash
+# 0. O frontend (Angular) fica em frontend/ e roda com: cd frontend && npm start
+
 # 1. Informe as credenciais do MySQL num .env na raiz (ignorado pelo Git)
 printf 'DB_USERNAME=root\nDB_PASSWORD=sua_senha\nJWT_SECRET=%s\n' "$(openssl rand -base64 48)" > .env
 

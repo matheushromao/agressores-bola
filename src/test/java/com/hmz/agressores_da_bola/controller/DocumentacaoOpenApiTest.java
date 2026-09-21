@@ -90,6 +90,42 @@ class DocumentacaoOpenApiTest {
                 .andExpect(jsonPath("$.components.schemas.ErroResponse.properties.campos").exists());
     }
 
+    /**
+     * Sem {@code produces} nos controllers o springdoc publica o media type
+     * curinga, e o gerador de cliente conclui que a resposta é binária — o
+     * front recebe um Blob no lugar do objeto. O sintoma só aparece em tempo
+     * de execução.
+     */
+    @Test
+    @DisplayName("as respostas declaram application/json, não */*")
+    void respostasDeclaramJson() throws Exception {
+        mvc.perform(get("/v3/api-docs"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.paths['/api/peladas'].get.responses.200"
+                        + ".content['application/json']").exists())
+                .andExpect(jsonPath("$.paths['/api/peladas'].get.responses.200.content['*/*']")
+                        .doesNotExist())
+                .andExpect(jsonPath("$.paths['/api/auth/login'].post.responses.200"
+                        + ".content['application/json']").exists());
+    }
+
+    /**
+     * O operationId vira o nome da função no cliente gerado. Deixá-lo a cargo
+     * do springdoc produz {@code listar1}, {@code buscarPorId1} e afins, e
+     * renomear depois quebra o front.
+     */
+    @Test
+    @DisplayName("cada operação tem um operationId explícito e legível")
+    void operationIdsExplicitos() throws Exception {
+        mvc.perform(get("/v3/api-docs"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.paths['/api/peladas'].get.operationId").value("listarPeladas"))
+                .andExpect(jsonPath("$.paths['/api/peladas'].post.operationId").value("criarPelada"))
+                .andExpect(jsonPath("$.paths['/api/peladas/{id}'].get.operationId").value("buscarPelada"))
+                .andExpect(jsonPath("$.paths['/api/usuarios'].get.operationId").value("listarUsuarios"))
+                .andExpect(jsonPath("$.paths['/api/auth/login'].post.operationId").value("login"));
+    }
+
     @Test
     @DisplayName("o Pageable vira parâmetros de query, não um objeto no corpo")
     void paginacaoComoParametroDeQuery() throws Exception {

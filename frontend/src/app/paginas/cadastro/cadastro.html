@@ -1,0 +1,153 @@
+<section class="mx-auto max-w-2xl">
+  <h1 class="text-2xl font-bold tracking-tight">Criar conta</h1>
+  <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">
+    As estrelas são o seu nível técnico e é com elas que o sorteio equilibra os times.
+  </p>
+
+  <form [formGroup]="form" (ngSubmit)="enviar()" class="mt-6 space-y-6">
+    <fieldset formGroupName="usuario" class="grid gap-4 sm:grid-cols-2">
+      <div class="sm:col-span-2">
+        <label for="nomeCompleto" class="block text-sm font-medium">Nome completo</label>
+        <input
+          id="nomeCompleto"
+          formControlName="nomeCompleto"
+          class="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900"
+        />
+      </div>
+
+      <div>
+        <label for="nickname" class="block text-sm font-medium">Nickname</label>
+        <input
+          id="nickname"
+          formControlName="nickname"
+          placeholder="hmz"
+          class="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900"
+        />
+      </div>
+
+      <div>
+        <label for="email" class="block text-sm font-medium">E-mail</label>
+        <input
+          id="email"
+          type="email"
+          formControlName="email"
+          class="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900"
+        />
+      </div>
+
+      <div>
+        <label for="numeroCelular" class="block text-sm font-medium">Celular</label>
+        <input
+          id="numeroCelular"
+          formControlName="numeroCelular"
+          placeholder="(11) 91234-5678"
+          class="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900"
+        />
+        @if (form.controls.usuario.controls.numeroCelular.touched && form.controls.usuario.controls.numeroCelular.invalid) {
+          <p class="mt-1 text-xs text-red-600 dark:text-red-400">Use o formato (11) 91234-5678.</p>
+        }
+      </div>
+
+      <div>
+        <label for="idade" class="block text-sm font-medium">Idade</label>
+        <input
+          id="idade"
+          type="number"
+          min="12"
+          max="100"
+          formControlName="idade"
+          class="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900"
+        />
+      </div>
+
+      <div>
+        <label for="posicao" class="block text-sm font-medium">Posição</label>
+        <select
+          id="posicao"
+          formControlName="posicao"
+          class="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900"
+        >
+          @for (opcao of posicoes; track opcao.valor) {
+            <option [value]="opcao.valor">{{ opcao.rotulo }}</option>
+          }
+        </select>
+      </div>
+
+      <div>
+        <label for="nacionalidade" class="block text-sm font-medium">Nacionalidade</label>
+        <input
+          id="nacionalidade"
+          formControlName="nacionalidade"
+          class="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900"
+        />
+      </div>
+
+      <div>
+        <label for="estrelas" class="block text-sm font-medium">
+          Estrelas
+          <span class="font-normal text-slate-500">— {{ form.controls.usuario.controls.estrelas.value }} de 5</span>
+        </label>
+        <input
+          id="estrelas"
+          type="range"
+          min="1"
+          max="5"
+          step="0.5"
+          formControlName="estrelas"
+          class="mt-3 w-full accent-emerald-600"
+        />
+      </div>
+
+      <div class="sm:col-span-2">
+        <label for="descricao" class="block text-sm font-medium">
+          Descrição <span class="font-normal text-slate-500">(opcional)</span>
+        </label>
+        <textarea
+          id="descricao"
+          rows="2"
+          formControlName="descricao"
+          placeholder="Joga de ala desde 2015"
+          class="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900"
+        ></textarea>
+      </div>
+    </fieldset>
+
+    <div>
+      <label for="senha" class="block text-sm font-medium">Senha</label>
+      <input
+        id="senha"
+        type="password"
+        formControlName="senha"
+        autocomplete="new-password"
+        class="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900 sm:max-w-xs"
+      />
+      <p class="mt-1 text-xs text-slate-500">De 8 a 72 caracteres.</p>
+      @if (form.controls.senha.touched && form.controls.senha.invalid) {
+        <p class="mt-1 text-xs text-red-600 dark:text-red-400">A senha precisa ter ao menos 8 caracteres.</p>
+      }
+    </div>
+
+    @if (erro(); as mensagem) {
+      <div
+        role="alert"
+        class="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300"
+      >
+        <p>{{ mensagem }}</p>
+        @for (campo of errosPorCampo() | keyvalue; track campo.key) {
+          <p class="mt-1 text-xs"><strong>{{ campo.key }}</strong>: {{ campo.value }}</p>
+        }
+      </div>
+    }
+
+    <div class="flex items-center gap-3">
+      <button
+        type="submit"
+        [disabled]="enviando()"
+        class="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-60"
+      >
+        {{ enviando() ? 'Cadastrando…' : 'Criar conta e entrar' }}
+      </button>
+      <a routerLink="/login" class="text-sm text-slate-600 hover:underline dark:text-slate-400">Já tenho conta</a>
+    </div>
+  </form>
+</section>

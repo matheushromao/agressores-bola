@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -27,7 +28,7 @@ import java.util.List;
  * o topo da lista.
  */
 @RestController
-@RequestMapping("/api/ranking")
+@RequestMapping(value = "/api/ranking", produces = MediaType.APPLICATION_JSON_VALUE)
 @RequiredArgsConstructor
 @Tag(name = "Rankings",
         description = "Classificações agregadas da liga. Todos os endpoints são públicos.")
@@ -38,7 +39,7 @@ public class RankingController {
     /**
      * Classificação geral por pontos, do primeiro ao último colocado.
      */
-    @Operation(summary = "Classificação geral por pontos",
+    @Operation(operationId = "rankingGeral", summary = "Classificação geral por pontos",
             description = "Do primeiro ao último colocado, somando a tabela de pontuação de "
                     + "todas as súmulas lançadas.")
     @ApiResponse(responseCode = "200", description = "Classificação geral")
@@ -57,7 +58,7 @@ public class RankingController {
      * Ranking de um atributo específico:
      * {@code /api/ranking/atributos/GOL}, {@code .../DEFESA_DIFICIL}.
      */
-    @Operation(summary = "Ranking de um atributo",
+    @Operation(operationId = "rankingPorAtributo", summary = "Ranking de um atributo",
             description = "Artilharia (GOL), assistências, desarmes, defesas e defesas difíceis.")
     @ApiResponse(responseCode = "200", description = "Ranking do atributo")
     @RespostaDadosInvalidos
@@ -76,7 +77,7 @@ public class RankingController {
     /**
      * Os artilheiros, os garçons e os paredões de uma vez só.
      */
-    @Operation(summary = "Destaques por atributo",
+    @Operation(operationId = "destaques", summary = "Destaques por atributo",
             description = "Os artilheiros, os garçons e os paredões em uma única chamada.")
     @ApiResponse(responseCode = "200", description = "Destaques de cada atributo")
     @RespostaDadosInvalidos

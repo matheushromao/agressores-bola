@@ -20,6 +20,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -30,7 +31,7 @@ import org.springframework.web.bind.annotation.*;
  * junto com a senha.
  */
 @RestController
-@RequestMapping("/api/usuarios")
+@RequestMapping(value = "/api/usuarios", produces = MediaType.APPLICATION_JSON_VALUE)
 @RequiredArgsConstructor
 @Tag(name = "Usuários",
         description = "Perfis de jogador. Exigem token: os dados expõem e-mail e celular. "
@@ -44,7 +45,7 @@ public class UsuarioController {
      * O @PageableDefault define o comportamento quando o cliente não manda
      * nada, então o backend nunca devolve a tabela inteira.
      */
-    @Operation(summary = "Lista jogadores com filtros e paginação",
+    @Operation(operationId = "listarUsuarios", summary = "Lista jogadores com filtros e paginação",
             description = "Sem `size` a página vem com 10 itens; o teto é 50, então a tabela "
                     + "inteira nunca é devolvida de uma vez.")
     @ApiResponse(responseCode = "200", description = "Página de jogadores")
@@ -62,7 +63,7 @@ public class UsuarioController {
         return ResponseEntity.ok(usuarioService.listar(posicao, busca, nacionalidade, pageable));
     }
 
-    @Operation(summary = "Busca um jogador por id")
+    @Operation(operationId = "buscarUsuario", summary = "Busca um jogador por id")
     @ApiResponse(responseCode = "200", description = "Jogador encontrado")
     @RespostaNaoEncontrado
     @GetMapping("/{id}")
@@ -70,7 +71,7 @@ public class UsuarioController {
         return ResponseEntity.ok(usuarioService.buscarPorId(id));
     }
 
-    @Operation(summary = "Busca um jogador pelo nickname")
+    @Operation(operationId = "buscarUsuarioPorNickname", summary = "Busca um jogador pelo nickname")
     @ApiResponse(responseCode = "200", description = "Jogador encontrado")
     @RespostaNaoEncontrado
     @GetMapping("/nickname/{nickname}")
@@ -78,7 +79,7 @@ public class UsuarioController {
         return ResponseEntity.ok(usuarioService.buscarPorNickname(nickname));
     }
 
-    @Operation(summary = "Atualiza o perfil",
+    @Operation(operationId = "atualizarUsuario", summary = "Atualiza o perfil",
             description = "Cada jogador só altera o próprio perfil. A senha não é alterada por aqui.")
     @ApiResponse(responseCode = "200", description = "Perfil atualizado")
     @RespostaDadosInvalidos
@@ -91,7 +92,7 @@ public class UsuarioController {
         return ResponseEntity.ok(usuarioService.atualizar(id, request, UsuarioLogado.id(jwt)));
     }
 
-    @Operation(summary = "Apaga o perfil", description = "Cada jogador só apaga o próprio perfil.")
+    @Operation(operationId = "deletarUsuario", summary = "Apaga o perfil", description = "Cada jogador só apaga o próprio perfil.")
     @ApiResponse(responseCode = "204", description = "Perfil apagado")
     @RespostaNaoEncontrado
     @RespostaRegraDeNegocio
