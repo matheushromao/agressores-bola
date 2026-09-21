@@ -11,6 +11,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.hamcrest.Matchers.emptyIterable;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.not;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -124,6 +126,52 @@ class DocumentacaoOpenApiTest {
                 .andExpect(jsonPath("$.paths['/api/peladas/{id}'].get.operationId").value("buscarPelada"))
                 .andExpect(jsonPath("$.paths['/api/usuarios'].get.operationId").value("listarUsuarios"))
                 .andExpect(jsonPath("$.paths['/api/auth/login'].post.operationId").value("login"));
+    }
+
+    /**
+     * Sem {@code required}, todo campo vira opcional no cliente gerado e o
+     * front precisa checar contra nulo o que nunca é nulo. Os nomes são
+     * escritos à mão em {@code requiredProperties}, então um erro de digitação
+     * some em silêncio — é isso que este teste pega.
+     */
+    @Test
+    @DisplayName("as respostas declaram quais campos sempre vêm preenchidos")
+    void camposObrigatoriosDeclarados() throws Exception {
+        mvc.perform(get("/v3/api-docs"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.components.schemas.PeladaResumoResponse.required")
+                        .value(hasItems("id", "nome", "data", "vagasRestantes", "organizadorNickname")))
+                .andExpect(jsonPath("$.components.schemas.UsuarioResumoResponse.required")
+                        .value(hasItems("id", "nickname", "posicao", "estrelas")))
+                .andExpect(jsonPath("$.components.schemas.TokenResponse.required")
+                        .value(hasItems("token", "tipo", "expiraEm")))
+                .andExpect(jsonPath("$.components.schemas.ErroResponse.required")
+                        .value(hasItems("timestamp", "status", "erro", "mensagem")));
+    }
+
+    /**
+     * O que é de fato anulável precisa continuar de fora: prometer que sempre
+     * vem seria pior do que não prometer nada.
+     */
+    @Test
+    @DisplayName("campos que podem vir nulos ficam fora do required")
+    void camposAnulaveisNaoSaoObrigatorios() throws Exception {
+        mvc.perform(get("/v3/api-docs"))
+                .andExpect(status().isOk())
+                // descrição e valor por jogador são opcionais no agendamento
+                .andExpect(jsonPath("$.components.schemas.PeladaResponse.required")
+                        .value(not(hasItem("descricao"))))
+                .andExpect(jsonPath("$.components.schemas.PeladaResponse.required")
+                        .value(not(hasItem("valorPorJogador"))))
+                // estrelas só têm padrão no resumo; no perfil completo vêm cruas
+                .andExpect(jsonPath("$.components.schemas.UsuarioResponse.required")
+                        .value(not(hasItem("estrelas"))))
+                // só existe depois da primeira correção da súmula
+                .andExpect(jsonPath("$.components.schemas.EstatisticaResponse.required")
+                        .value(not(hasItem("atualizadaEm"))))
+                // preenchido apenas nos 400 de validação
+                .andExpect(jsonPath("$.components.schemas.ErroResponse.required")
+                        .value(not(hasItem("campos"))));
     }
 
     @Test

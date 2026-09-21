@@ -3,6 +3,7 @@ package com.hmz.agressores_da_bola.dto;
 import com.hmz.agressores_da_bola.model.enums.StatusPelada;
 import com.hmz.agressores_da_bola.model.enums.TipoCampo;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -11,6 +12,24 @@ import java.time.LocalTime;
  * Versão reduzida usada nas listagens paginadas: sem a escalação completa,
  * o payload de uma página com 20 peladas continua leve.
  */
+@Schema(requiredProperties = {
+        "id",
+        "nome",
+        "data",
+        "horaInicio",
+        "horaFim",
+        "localNome",
+        "cidade",
+        "estado",
+        "tipoCampo",
+        "tipoCampoDescricao",
+        "status",
+        "statusDescricao",
+        "maxParticipantes",
+        "totalConfirmados",
+        "vagasRestantes",
+        "organizadorNickname"
+})
 public record PeladaResumoResponse(
         Long id,
         String nome,

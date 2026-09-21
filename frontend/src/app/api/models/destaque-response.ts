@@ -3,8 +3,8 @@
 
 import { RankingAtributoResponse } from '../models/ranking-atributo-response';
 export interface DestaqueResponse {
-  atributo?: 'GOL' | 'DEFESA_DIFICIL' | 'ASSISTENCIA' | 'DEFESA' | 'DESARME';
-  descricao?: string;
-  peso?: number;
-  ranking?: Array<RankingAtributoResponse>;
+  atributo: 'GOL' | 'DEFESA_DIFICIL' | 'ASSISTENCIA' | 'DEFESA' | 'DESARME';
+  descricao: string;
+  peso: number;
+  ranking: Array<RankingAtributoResponse>;
 }

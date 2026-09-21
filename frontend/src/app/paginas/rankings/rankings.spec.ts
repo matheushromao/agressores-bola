@@ -5,6 +5,7 @@ import { provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { DestaqueResponse, RankingResponse } from '../../api';
 import { provideApiConfiguration } from '../../api/api-configuration';
+import { entrarComo, jogador } from '../../testes/fixtures';
 import { Rankings } from './rankings';
 
 const PELADAS = {
@@ -20,7 +21,7 @@ const PELADAS = {
 const GERAL: RankingResponse[] = [
   {
     posicao: 1,
-    jogador: { id: 42, nickname: 'caio', posicaoDescricao: 'Ala', estrelas: 3 },
+    jogador: jogador({ id: 42, nickname: 'caio', posicaoDescricao: 'Ala', estrelas: 3 }),
     jogos: 4,
     gols: 7,
     assistencias: 3,
@@ -29,10 +30,11 @@ const GERAL: RankingResponse[] = [
     defesasDificeis: 0,
     pontuacao: 106,
     mediaPorJogo: 26.5,
+    detalhamento: [{ atributo: 'GOL', descricao: 'Gols', quantidade: 7, peso: 10, pontos: 70 }],
   },
   {
     posicao: 2,
-    jogador: { id: 43, nickname: 'bruno', posicaoDescricao: 'Goleiro', estrelas: 4 },
+    jogador: jogador({ id: 43, nickname: 'bruno', posicaoDescricao: 'Goleiro', estrelas: 4 }),
     jogos: 4,
     gols: 0,
     assistencias: 0,
@@ -41,6 +43,7 @@ const GERAL: RankingResponse[] = [
     defesasDificeis: 5,
     pontuacao: 112,
     mediaPorJogo: 28,
+    detalhamento: [{ atributo: 'DEFESA', descricao: 'Defesas', quantidade: 18, peso: 4, pontos: 72 }],
   },
 ];
 
@@ -49,7 +52,7 @@ const DESTAQUES: DestaqueResponse[] = [
     atributo: 'GOL',
     descricao: 'Gols',
     peso: 10,
-    ranking: [{ posicao: 1, jogador: { id: 42, nickname: 'caio' }, jogos: 4, total: 7, pontos: 70 }],
+    ranking: [{ posicao: 1, jogador: jogador({ id: 42, nickname: 'caio' }), jogos: 4, total: 7, pontos: 70 }],
   },
   { atributo: 'DESARME', descricao: 'Desarmes', peso: 3, ranking: [] },
 ];

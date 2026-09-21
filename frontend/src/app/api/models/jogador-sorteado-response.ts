@@ -3,6 +3,6 @@
 
 import { UsuarioResumoResponse } from '../models/usuario-resumo-response';
 export interface JogadorSorteadoResponse {
-  goleiro?: boolean;
-  jogador?: UsuarioResumoResponse;
+  goleiro: boolean;
+  jogador: UsuarioResumoResponse;
 }

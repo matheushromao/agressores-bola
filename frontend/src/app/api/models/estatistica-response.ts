@@ -3,20 +3,24 @@
 
 import { PontuacaoAtributoResponse } from '../models/pontuacao-atributo-response';
 import { UsuarioResumoResponse } from '../models/usuario-resumo-response';
+
+/**
+ * Súmula de um jogador. `atualizadaEm` só existe depois da primeira correção.
+ */
 export interface EstatisticaResponse {
-  assistencias?: number;
+  assistencias: number;
   atualizadaEm?: string;
-  defesas?: number;
-  defesasDificeis?: number;
-  desarmes?: number;
-  detalhamento?: Array<PontuacaoAtributoResponse>;
-  goleiro?: boolean;
-  gols?: number;
-  id?: number;
-  jogador?: UsuarioResumoResponse;
-  peladaId?: number;
-  pontuacao?: number;
-  posicaoJogada?: 'GOLEIRO' | 'ALA' | 'FIXO' | 'PIVO' | 'AMADOR';
-  posicaoJogadaDescricao?: string;
-  registradaEm?: string;
+  defesas: number;
+  defesasDificeis: number;
+  desarmes: number;
+  detalhamento: Array<PontuacaoAtributoResponse>;
+  goleiro: boolean;
+  gols: number;
+  id: number;
+  jogador: UsuarioResumoResponse;
+  peladaId: number;
+  pontuacao: number;
+  posicaoJogada: 'GOLEIRO' | 'ALA' | 'FIXO' | 'PIVO' | 'AMADOR';
+  posicaoJogadaDescricao: string;
+  registradaEm: string;
 }

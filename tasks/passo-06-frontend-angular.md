@@ -288,10 +288,52 @@ padrão).
 
 ---
 
-## 8. O que ficou
+## 8. Tipos firmes: o `required` nas respostas
 
-O frontend cobre todos os endpoints que interessam ao uso diário. O que sobra:
+Até aqui **todo campo de resposta chegava opcional** no TypeScript, porque o
+springdoc só marca `required` onde existe `@NotNull` — e nas respostas não há
+Bean Validation. Na prática o front checava contra nulo o que nunca é nulo, e
+o compilador não ajudava a achar o que de fato pode faltar.
 
-- campos de resposta chegam todos opcionais no TypeScript, porque o contrato só
-  marca `required` onde há `@NotNull`; anotar os DTOs de resposta deixaria os
-  tipos mais firmes
+Os 16 DTOs de resposta ganharam `@Schema(requiredProperties = {...})` **no
+nível do record**: uma anotação por DTO listando os campos, em vez de espalhar
+`requiredMode` campo a campo. O resultado no cliente gerado:
+
+```ts
+export interface PeladaResumoResponse {
+  id: number;              // antes: id?: number
+  nome: string;
+  vagasRestantes: number;
+  valorPorJogador?: number;   // este continua opcional, e com razão
+}
+```
+
+O critério foi **presença real na resposta**, não vontade: ficam de fora as
+colunas sem `NOT NULL` (`descricao`, `valorPorJogador`), o que só existe depois
+de algo acontecer (`atualizadaEm` da súmula, preenchido no `@PreUpdate`), e o
+`campos` do `ErroResponse`, que só vem nos 400 de validação. Prometer que um
+desses sempre vem seria pior do que não prometer nada.
+
+Um detalhe fino que valeu registro: `estrelas` é obrigatório em
+`UsuarioResumoResponse` e opcional em `UsuarioResponse` — o resumo passa por
+`estrelasOuPadrao()` e o perfil completo devolve o valor cru.
+
+Como os nomes em `requiredProperties` são texto, um erro de digitação sumiria
+em silêncio: `DocumentacaoOpenApiTest` agora confere as duas listas, a do que
+é obrigatório e a do que precisa continuar de fora.
+
+**O efeito colateral foi útil.** Ao regerar o cliente, o `ng build` da suíte
+apontou uma dúzia de erros — todos em *fixtures de teste* que montavam
+respostas pela metade, com um jogador sem `nomeCompleto` ou uma pelada sem
+cidade. Eram objetos que nunca existiriam em produção. Completá-los aproximou
+os testes da realidade, e o que se repetia (o jogador de exemplo, o token
+falso) virou `src/app/testes/fixtures.ts`, fora do build da aplicação pelo
+`tsconfig.app.json`.
+
+---
+
+## 9. O que ficou
+
+O frontend cobre todos os endpoints que interessam ao uso diário, e o contrato
+descreve tanto os nomes quanto a presença dos campos. Daqui em diante o que
+aparecer é assunto novo, não dívida do roteiro.

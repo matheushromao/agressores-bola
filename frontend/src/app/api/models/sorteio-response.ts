@@ -4,13 +4,13 @@
 import { JogadorSorteadoResponse } from '../models/jogador-sorteado-response';
 import { TimeSorteadoResponse } from '../models/time-sorteado-response';
 export interface SorteioResponse {
-  diferencaEntreTimes?: number;
-  jogadoresPorTime?: number;
-  peladaId?: number;
-  peladaNome?: string;
-  quantidadeTimes?: number;
-  reservas?: Array<JogadorSorteadoResponse>;
-  semente?: number;
-  times?: Array<TimeSorteadoResponse>;
-  totalConfirmados?: number;
+  diferencaEntreTimes: number;
+  jogadoresPorTime: number;
+  peladaId: number;
+  peladaNome: string;
+  quantidadeTimes: number;
+  reservas: Array<JogadorSorteadoResponse>;
+  semente: number;
+  times: Array<TimeSorteadoResponse>;
+  totalConfirmados: number;
 }

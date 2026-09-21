@@ -6,19 +6,13 @@ import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { PeladaResponse, SorteioResponse } from '../../api';
 import { provideApiConfiguration } from '../../api/api-configuration';
+import { entrarComo, jogador } from '../../testes/fixtures';
 import { Sorteio } from './sorteio';
 
-const CHAVE = 'agressores.token';
 const ORGANIZADOR = 99;
 
 @Component({ selector: 'app-login-falso', template: '' })
 class LoginFalso {}
-
-function entrarComo(id: number): void {
-  const carga = { sub: String(id), nickname: 'hmz', exp: Math.floor(Date.now() / 1000) + 3600 };
-  const base64url = (valor: string) => btoa(valor).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-  localStorage.setItem(CHAVE, `${base64url('{"alg":"HS256"}')}.${base64url(JSON.stringify(carga))}.assinatura`);
-}
 
 const PELADA: PeladaResponse = {
   id: 1,
@@ -26,12 +20,18 @@ const PELADA: PeladaResponse = {
   data: '2026-10-15',
   horaInicio: '19:00:00',
   horaFim: '21:00:00',
+  localNome: 'Arena Vila Progresso',
+  endereco: 'Rua das Palmeiras, 120',
+  cidade: 'Sorocaba',
+  estado: 'SP',
+  tipoCampo: 'FUTSAL',
+  tipoCampoDescricao: 'Futsal',
   status: 'AGENDADA',
   statusDescricao: 'Agendada',
   maxParticipantes: 14,
   totalConfirmados: 10,
   vagasRestantes: 4,
-  organizador: { id: ORGANIZADOR, nickname: 'ana', posicao: 'PIVO', posicaoDescricao: 'Pivô', estrelas: 4.5 },
+  organizador: jogador({ id: ORGANIZADOR, nickname: 'ana', posicao: 'PIVO', posicaoDescricao: 'Pivô', estrelas: 4.5 }),
   participantes: [],
 };
 
@@ -51,8 +51,8 @@ const SORTEIO: SorteioResponse = {
       mediaEstrelas: 3.5,
       temGoleiro: true,
       jogadores: [
-        { goleiro: true, jogador: { id: 1, nickname: 'bruno', posicaoDescricao: 'Goleiro', estrelas: 4 } },
-        { goleiro: false, jogador: { id: 2, nickname: 'caio', posicaoDescricao: 'Ala', estrelas: 3.5 } },
+        { goleiro: true, jogador: jogador({ id: 1, nickname: 'bruno', posicaoDescricao: 'Goleiro', estrelas: 4 }) },
+        { goleiro: false, jogador: jogador({ id: 2, nickname: 'caio', posicaoDescricao: 'Ala', estrelas: 3.5 }) },
       ],
     },
     {
@@ -61,10 +61,10 @@ const SORTEIO: SorteioResponse = {
       totalEstrelas: 17,
       mediaEstrelas: 3.4,
       temGoleiro: false,
-      jogadores: [{ goleiro: false, jogador: { id: 3, nickname: 'davi', posicaoDescricao: 'Fixo', estrelas: 3 } }],
+      jogadores: [{ goleiro: false, jogador: jogador({ id: 3, nickname: 'davi', posicaoDescricao: 'Fixo', estrelas: 3 }) }],
     },
   ],
-  reservas: [{ goleiro: false, jogador: { id: 9, nickname: 'sobrou', posicaoDescricao: 'Ala', estrelas: 2 } }],
+  reservas: [{ goleiro: false, jogador: jogador({ id: 9, nickname: 'sobrou', posicaoDescricao: 'Ala', estrelas: 2 }) }],
 };
 
 async function volta(): Promise<void> {

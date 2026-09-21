@@ -4,15 +4,15 @@
 import { PontuacaoAtributoResponse } from '../models/pontuacao-atributo-response';
 import { UsuarioResumoResponse } from '../models/usuario-resumo-response';
 export interface RankingResponse {
-  assistencias?: number;
-  defesas?: number;
-  defesasDificeis?: number;
-  desarmes?: number;
-  detalhamento?: Array<PontuacaoAtributoResponse>;
-  gols?: number;
-  jogador?: UsuarioResumoResponse;
-  jogos?: number;
-  mediaPorJogo?: number;
-  pontuacao?: number;
-  posicao?: number;
+  assistencias: number;
+  defesas: number;
+  defesasDificeis: number;
+  desarmes: number;
+  detalhamento: Array<PontuacaoAtributoResponse>;
+  gols: number;
+  jogador: UsuarioResumoResponse;
+  jogos: number;
+  mediaPorJogo: number;
+  pontuacao: number;
+  posicao: number;
 }

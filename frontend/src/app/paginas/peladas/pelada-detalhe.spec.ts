@@ -6,18 +6,11 @@ import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { PeladaResponse } from '../../api';
 import { provideApiConfiguration } from '../../api/api-configuration';
+import { entrarComo, jogador } from '../../testes/fixtures';
 import { PeladaDetalhe } from './pelada-detalhe';
-
-const CHAVE = 'agressores.token';
 
 @Component({ selector: 'app-login-falso', template: '' })
 class LoginFalso {}
-
-function entrarComo(id: number): void {
-  const carga = { sub: String(id), nickname: 'hmz', exp: Math.floor(Date.now() / 1000) + 3600 };
-  const base64url = (valor: string) => btoa(valor).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-  localStorage.setItem(CHAVE, `${base64url('{"alg":"HS256"}')}.${base64url(JSON.stringify(carga))}.assinatura`);
-}
 
 const PELADA: PeladaResponse = {
   id: 1,
@@ -36,13 +29,14 @@ const PELADA: PeladaResponse = {
   maxParticipantes: 10,
   totalConfirmados: 1,
   vagasRestantes: 9,
-  organizador: { id: 99, nickname: 'organizador', posicao: 'FIXO', posicaoDescricao: 'Fixo', estrelas: 4 },
+  organizador: jogador({ id: 99, nickname: 'organizador', posicao: 'FIXO', posicaoDescricao: 'Fixo', estrelas: 4 }),
   participantes: [
     {
       participacaoId: 10,
+      dataInscricao: '2026-09-01T10:00:00',
       status: 'CONFIRMADO',
       statusDescricao: 'Confirmado',
-      usuario: { id: 42, nickname: 'outro', posicao: 'ALA', posicaoDescricao: 'Ala', estrelas: 3 },
+      usuario: jogador({ id: 42, nickname: 'outro', posicao: 'ALA', posicaoDescricao: 'Ala', estrelas: 3 }),
     },
   ],
 };

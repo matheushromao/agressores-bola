@@ -3,11 +3,11 @@
 
 import { UsuarioResponse } from '../models/usuario-response';
 export interface PageResponseUsuarioResponse {
-  conteudo?: Array<UsuarioResponse>;
-  pagina?: number;
-  primeira?: boolean;
-  tamanho?: number;
-  totalElementos?: number;
-  totalPaginas?: number;
-  ultima?: boolean;
+  conteudo: Array<UsuarioResponse>;
+  pagina: number;
+  primeira: boolean;
+  tamanho: number;
+  totalElementos: number;
+  totalPaginas: number;
+  ultima: boolean;
 }

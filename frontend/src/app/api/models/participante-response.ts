@@ -3,9 +3,9 @@
 
 import { UsuarioResumoResponse } from '../models/usuario-resumo-response';
 export interface ParticipanteResponse {
-  dataInscricao?: string;
-  participacaoId?: number;
-  status?: 'CONVIDADO' | 'CONFIRMADO' | 'RECUSADO' | 'LISTA_DE_ESPERA';
-  statusDescricao?: string;
-  usuario?: UsuarioResumoResponse;
+  dataInscricao: string;
+  participacaoId: number;
+  status: 'CONVIDADO' | 'CONFIRMADO' | 'RECUSADO' | 'LISTA_DE_ESPERA';
+  statusDescricao: string;
+  usuario: UsuarioResumoResponse;
 }

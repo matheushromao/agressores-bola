@@ -3,6 +3,7 @@ package com.hmz.agressores_da_bola.dto;
 import com.hmz.agressores_da_bola.model.enums.StatusPelada;
 import com.hmz.agressores_da_bola.model.enums.TipoCampo;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -12,6 +13,26 @@ import java.util.List;
  * Resposta completa da pelada, com a escalação. Usada nos endpoints de
  * detalhe/criação/atualização.
  */
+@Schema(requiredProperties = {
+        "id",
+        "nome",
+        "data",
+        "horaInicio",
+        "horaFim",
+        "localNome",
+        "endereco",
+        "cidade",
+        "estado",
+        "tipoCampo",
+        "tipoCampoDescricao",
+        "maxParticipantes",
+        "totalConfirmados",
+        "vagasRestantes",
+        "status",
+        "statusDescricao",
+        "organizador",
+        "participantes"
+})
 public record PeladaResponse(
         Long id,
         String nome,

@@ -1,5 +1,6 @@
 package com.hmz.agressores_da_bola.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -14,6 +15,17 @@ import java.util.List;
  * @param semente             semente usada; devolver o mesmo valor no próximo
  *                            pedido repete este sorteio
  */
+@Schema(requiredProperties = {
+        "peladaId",
+        "peladaNome",
+        "quantidadeTimes",
+        "jogadoresPorTime",
+        "totalConfirmados",
+        "diferencaEntreTimes",
+        "times",
+        "reservas",
+        "semente"
+})
 public record SorteioResponse(
         Long peladaId,
         String peladaNome,

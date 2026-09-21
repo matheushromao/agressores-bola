@@ -344,6 +344,10 @@ cd frontend && npm run gen:api     # exige a API no ar
 Mudou um DTO ou um endpoint no backend? Regere e o `ng build` aponta o que
 quebrou — em vez de a divergência aparecer só em produção.
 
+Os DTOs de resposta declaram, com `@Schema(requiredProperties = ...)`, quais
+campos **sempre** vêm preenchidos. Assim o TypeScript só exige checagem de nulo
+onde o valor pode faltar de verdade, como `descricao` e `valorPorJogador`.
+
 > O frontend cobre o ciclo completo: agendar, escalar, sortear, lançar súmula e
 > acompanhar os rankings. Detalhes no
 > [passo 06](tasks/passo-06-frontend-angular.md).

@@ -3,10 +3,10 @@
 
 import { JogadorSorteadoResponse } from '../models/jogador-sorteado-response';
 export interface TimeSorteadoResponse {
-  jogadores?: Array<JogadorSorteadoResponse>;
-  mediaEstrelas?: number;
-  nome?: string;
-  quantidadeJogadores?: number;
-  temGoleiro?: boolean;
-  totalEstrelas?: number;
+  jogadores: Array<JogadorSorteadoResponse>;
+  mediaEstrelas: number;
+  nome: string;
+  quantidadeJogadores: number;
+  temGoleiro: boolean;
+  totalEstrelas: number;
 }

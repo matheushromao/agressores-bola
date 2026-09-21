@@ -6,40 +6,47 @@ import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { EstatisticaResponse, PeladaResponse } from '../../api';
 import { provideApiConfiguration } from '../../api/api-configuration';
+import { entrarComo, jogador } from '../../testes/fixtures';
 import { Sumula } from './sumula';
 
-const CHAVE = 'agressores.token';
 const ORGANIZADOR = 99;
 const JOGADOR = 42;
 
 @Component({ selector: 'app-login-falso', template: '' })
 class LoginFalso {}
 
-function entrarComo(id: number): void {
-  const carga = { sub: String(id), nickname: 'hmz', exp: Math.floor(Date.now() / 1000) + 3600 };
-  const base64url = (valor: string) => btoa(valor).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-  localStorage.setItem(CHAVE, `${base64url('{"alg":"HS256"}')}.${base64url(JSON.stringify(carga))}.assinatura`);
-}
-
 const PELADA: PeladaResponse = {
   id: 1,
   nome: 'Pelada de quinta',
   data: '2026-10-15',
+  horaInicio: '19:00:00',
+  horaFim: '21:00:00',
+  localNome: 'Arena Vila Progresso',
+  endereco: 'Rua das Palmeiras, 120',
+  cidade: 'Sorocaba',
+  estado: 'SP',
+  tipoCampo: 'FUTSAL',
+  tipoCampoDescricao: 'Futsal',
+  maxParticipantes: 14,
+  totalConfirmados: 1,
+  vagasRestantes: 13,
   status: 'FINALIZADA',
   statusDescricao: 'Finalizada',
-  organizador: { id: ORGANIZADOR, nickname: 'ana' },
+  organizador: jogador({ id: ORGANIZADOR, nickname: 'ana' }),
   participantes: [
     {
       participacaoId: 10,
+      dataInscricao: '2026-09-01T10:00:00',
       status: 'CONFIRMADO',
       statusDescricao: 'Confirmado',
-      usuario: { id: JOGADOR, nickname: 'caio', posicao: 'ALA', posicaoDescricao: 'Ala', estrelas: 3 },
+      usuario: jogador({ id: JOGADOR, nickname: 'caio', posicao: 'ALA', posicaoDescricao: 'Ala', estrelas: 3 }),
     },
     {
       participacaoId: 11,
+      dataInscricao: '2026-09-01T10:00:00',
       status: 'LISTA_DE_ESPERA',
       statusDescricao: 'Lista de espera',
-      usuario: { id: 77, nickname: 'espera', posicao: 'FIXO', posicaoDescricao: 'Fixo', estrelas: 2 },
+      usuario: jogador({ id: 77, nickname: 'espera', posicao: 'FIXO', posicaoDescricao: 'Fixo', estrelas: 2 }),
     },
   ],
 };
@@ -48,7 +55,7 @@ const LANCAMENTOS: EstatisticaResponse[] = [
   {
     id: 500,
     peladaId: 1,
-    jogador: { id: JOGADOR, nickname: 'caio', posicaoDescricao: 'Ala', estrelas: 3 },
+    jogador: jogador({ id: JOGADOR, nickname: 'caio', posicaoDescricao: 'Ala', estrelas: 3 }),
     posicaoJogada: 'ALA',
     posicaoJogadaDescricao: 'Ala',
     goleiro: false,
@@ -58,6 +65,7 @@ const LANCAMENTOS: EstatisticaResponse[] = [
     defesas: 0,
     defesasDificeis: 0,
     pontuacao: 36,
+    registradaEm: '2026-10-15T21:30:00',
     detalhamento: [
       { atributo: 'GOL', descricao: 'Gols', quantidade: 2, peso: 10, pontos: 20 },
       { atributo: 'ASSISTENCIA', descricao: 'Assistências', quantidade: 1, peso: 7, pontos: 7 },

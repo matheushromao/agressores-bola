@@ -2,6 +2,7 @@ package com.hmz.agressores_da_bola.dto;
 
 import com.hmz.agressores_da_bola.model.enums.AtributoPontuacao;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 
 /**
@@ -9,6 +10,12 @@ import java.util.List;
  * gols, quem mais deu assistência, quem mais fez defesa difícil — para a tela
  * de destaques não precisar de uma chamada por atributo.
  */
+@Schema(requiredProperties = {
+        "atributo",
+        "descricao",
+        "peso",
+        "ranking"
+})
 public record DestaqueResponse(
         AtributoPontuacao atributo,
         String descricao,

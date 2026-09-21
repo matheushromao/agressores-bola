@@ -6,19 +6,13 @@ import { Router, provideRouter, withComponentInputBinding } from '@angular/route
 import { RouterTestingHarness } from '@angular/router/testing';
 import { PeladaResponse } from '../../api';
 import { provideApiConfiguration } from '../../api/api-configuration';
+import { entrarComo, jogador } from '../../testes/fixtures';
 import { PeladaFormulario } from './pelada-formulario';
 
-const CHAVE = 'agressores.token';
 const ORGANIZADOR = 99;
 
 @Component({ selector: 'app-vazio', template: '' })
 class Vazio {}
-
-function entrarComo(id: number): void {
-  const carga = { sub: String(id), nickname: 'hmz', exp: Math.floor(Date.now() / 1000) + 3600 };
-  const base64url = (valor: string) => btoa(valor).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-  localStorage.setItem(CHAVE, `${base64url('{"alg":"HS256"}')}.${base64url(JSON.stringify(carga))}.assinatura`);
-}
 
 /** Uma data sempre no futuro, para não depender de quando a suíte roda. */
 function daquiUmMes(): string {
@@ -45,7 +39,7 @@ const PELADA: PeladaResponse = {
   maxParticipantes: 14,
   totalConfirmados: 6,
   vagasRestantes: 8,
-  organizador: { id: ORGANIZADOR, nickname: 'ana' },
+  organizador: jogador({ id: ORGANIZADOR, nickname: 'ana' }),
   participantes: [],
 };
 

@@ -1,5 +1,6 @@
 package com.hmz.agressores_da_bola.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 
 /**
@@ -8,6 +9,19 @@ import java.util.List;
  * @param posicao colocação já resolvendo empates: dois jogadores com a mesma
  *                pontuação dividem a posição e a seguinte é pulada (1, 2, 2, 4)
  */
+@Schema(requiredProperties = {
+        "posicao",
+        "jogador",
+        "jogos",
+        "gols",
+        "assistencias",
+        "desarmes",
+        "defesas",
+        "defesasDificeis",
+        "pontuacao",
+        "mediaPorJogo",
+        "detalhamento"
+})
 public record RankingResponse(
         int posicao,
         UsuarioResumoResponse jogador,

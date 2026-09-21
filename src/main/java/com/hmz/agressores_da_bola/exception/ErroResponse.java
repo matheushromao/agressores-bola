@@ -6,7 +6,8 @@ import java.time.LocalDateTime;
 import java.util.Map;
 
 @Schema(description = "Contrato único de erro da API: vale tanto para o que o "
-        + "GlobalExceptionHandler trata quanto para os 401 e 403 barrados no filtro de segurança")
+        + "GlobalExceptionHandler trata quanto para os 401 e 403 barrados no filtro de segurança",
+        requiredProperties = {"timestamp", "status", "erro", "mensagem"})
 public record ErroResponse(
 
         @Schema(description = "Momento em que o erro ocorreu", example = "2026-09-21T19:30:00")

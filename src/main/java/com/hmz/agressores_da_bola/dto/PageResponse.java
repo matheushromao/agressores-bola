@@ -1,5 +1,6 @@
 package com.hmz.agressores_da_bola.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.data.domain.Page;
 
 import java.util.List;
@@ -12,6 +13,15 @@ import java.util.function.Function;
  *
  * @param <T> tipo do DTO de resposta que compõe a página
  */
+@Schema(requiredProperties = {
+        "conteudo",
+        "pagina",
+        "tamanho",
+        "totalElementos",
+        "totalPaginas",
+        "primeira",
+        "ultima"
+})
 public record PageResponse<T>(
         List<T> conteudo,
         int pagina,

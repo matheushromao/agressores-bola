@@ -17,20 +17,20 @@ export interface ErroResponse {
   /**
    * Categoria do erro
    */
-  erro?: string;
+  erro: string;
 
   /**
    * Explicação legível
    */
-  mensagem?: string;
+  mensagem: string;
 
   /**
    * Código HTTP
    */
-  status?: number;
+  status: number;
 
   /**
    * Momento em que o erro ocorreu
    */
-  timestamp?: string;
+  timestamp: string;
 }

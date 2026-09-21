@@ -3,9 +3,9 @@
 
 import { UsuarioResumoResponse } from '../models/usuario-resumo-response';
 export interface RankingAtributoResponse {
-  jogador?: UsuarioResumoResponse;
-  jogos?: number;
-  pontos?: number;
-  posicao?: number;
-  total?: number;
+  jogador: UsuarioResumoResponse;
+  jogos: number;
+  pontos: number;
+  posicao: number;
+  total: number;
 }

@@ -3,11 +3,11 @@
 
 import { PeladaResumoResponse } from '../models/pelada-resumo-response';
 export interface PageResponsePeladaResumoResponse {
-  conteudo?: Array<PeladaResumoResponse>;
-  pagina?: number;
-  primeira?: boolean;
-  tamanho?: number;
-  totalElementos?: number;
-  totalPaginas?: number;
-  ultima?: boolean;
+  conteudo: Array<PeladaResumoResponse>;
+  pagina: number;
+  primeira: boolean;
+  tamanho: number;
+  totalElementos: number;
+  totalPaginas: number;
+  ultima: boolean;
 }
