@@ -25,6 +25,7 @@ import java.util.Random;
 public class SorteioServiceImpl implements SorteioService {
 
     private static final int MINIMO_DE_TIMES = 2;
+    private static final int MINIMO_DE_JOGADORES_POR_TIME = 2;
 
     private final PeladaRepository peladaRepository;
     private final BalanceadorDeTimes balanceador;
@@ -52,7 +53,7 @@ public class SorteioServiceImpl implements SorteioService {
         int quantidadeTimes = resolverQuantidadeTimes(request, confirmados.size());
         int jogadoresPorTime = resolverJogadoresPorTime(request, confirmados.size(), quantidadeTimes);
 
-        validarDivisao(confirmados.size(), quantidadeTimes, jogadoresPorTime);
+        validarDivisao(request, confirmados.size(), quantidadeTimes, jogadoresPorTime);
 
         // Guardar a semente permite refazer exatamente o mesmo sorteio depois.
         long semente = request.semente() != null ? request.semente() : System.nanoTime();
@@ -96,20 +97,36 @@ public class SorteioServiceImpl implements SorteioService {
         return quantidadeTimes == 0 ? 0 : confirmados / quantidadeTimes;
     }
 
-    private void validarDivisao(int confirmados, int quantidadeTimes, int jogadoresPorTime) {
-        if (quantidadeTimes < MINIMO_DE_TIMES || jogadoresPorTime < MINIMO_DE_TIMES) {
-            throw new RegraDeNegocioException(
-                    "Não há confirmados suficientes para o sorteio pedido: são "
-                            + confirmados + " jogadores, e é preciso pelo menos "
-                            + (MINIMO_DE_TIMES * MINIMO_DE_TIMES)
-                            + " para formar 2 times de 2");
+    /**
+     * Só existe um jeito de a divisão não fechar: faltar gente para o critério
+     * pedido. O outro caso imaginável — confirmados a menos do que
+     * {@code times × jogadoresPorTime} — não acontece, porque o valor deduzido
+     * sempre vem de uma divisão inteira e o resto vira reserva.
+     *
+     * <p>A mensagem cita <strong>o que o organizador pediu</strong>, não o
+     * mínimo absoluto do sorteio: quem pede times de 6 com 10 confirmados
+     * precisa ouvir que faltam 2 jogadores, e não que "é preciso pelo menos 4
+     * para formar 2 times de 2" — verdadeiro, porém inútil.
+     */
+    private void validarDivisao(SorteioRequest request, int confirmados,
+                                int quantidadeTimes, int jogadoresPorTime) {
+        if (quantidadeTimes >= MINIMO_DE_TIMES && jogadoresPorTime >= MINIMO_DE_JOGADORES_POR_TIME) {
+            return;
         }
-        if (confirmados < quantidadeTimes * jogadoresPorTime) {
+
+        if (request.quantidadeTimes() != null) {
+            int necessarios = request.quantidadeTimes() * MINIMO_DE_JOGADORES_POR_TIME;
             throw new RegraDeNegocioException(
-                    "São necessários " + (quantidadeTimes * jogadoresPorTime)
-                            + " jogadores confirmados para formar " + quantidadeTimes
-                            + " times de " + jogadoresPorTime + ", mas a pelada tem "
-                            + confirmados);
+                    "Para formar " + request.quantidadeTimes() + " times são necessários pelo menos "
+                            + necessarios + " jogadores confirmados, já que cada time precisa de "
+                            + MINIMO_DE_JOGADORES_POR_TIME + ", mas a pelada tem " + confirmados);
         }
+
+        int necessarios = request.jogadoresPorTime() * MINIMO_DE_TIMES;
+        throw new RegraDeNegocioException(
+                "Para formar times de " + request.jogadoresPorTime()
+                        + " jogadores são necessários pelo menos " + necessarios
+                        + " confirmados, já que o sorteio precisa de ao menos "
+                        + MINIMO_DE_TIMES + " times, mas a pelada tem " + confirmados);
     }
 }

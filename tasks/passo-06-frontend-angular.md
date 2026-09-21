@@ -148,10 +148,22 @@ goleiro (🧤), avisa quando um time ficou **sem goleiro**, lista as reservas
 explicando por que elas existem (time com um jogador a mais nasce em vantagem)
 e classifica a diferença de estrelas entre o time mais forte e o mais fraco.
 
-> Uma aspereza encontrada, que ficou no backend: pedir 6 jogadores por time com
-> 10 confirmados cai no primeiro ramo de `validarDivisao` e responde *"é preciso
-> pelo menos 4 para formar 2 times de 2"* — verdadeiro, mas não é o que faltou.
-> A prévia da tela evita o caso; a mensagem em si merece um ajuste.
+Construir a tela também expôs uma aspereza no backend, **já corrigida**: pedir
+6 jogadores por time com 10 confirmados caía no primeiro ramo de
+`validarDivisao` e respondia *"é preciso pelo menos 4 para formar 2 times de
+2"* — verdadeiro, e inútil para quem pediu times de 6. A mensagem agora cita o
+critério pedido:
+
+```
+Para formar times de 6 jogadores são necessários pelo menos 12 confirmados,
+já que o sorteio precisa de ao menos 2 times, mas a pelada tem 10
+```
+
+No mesmo lugar havia um ramo **inalcançável** — "confirmados a menos do que
+times × jogadores por time". Ele não podia acontecer: o valor deduzido vem
+sempre de uma divisão inteira, e o resto vira reserva. Saiu, e o invariante
+ficou escrito no Javadoc. `SorteioServiceImplTest` cobre as duas mensagens,
+a posse, o status e o repasse da semente.
 
 ---
 

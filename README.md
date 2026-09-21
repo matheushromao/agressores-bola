@@ -856,6 +856,7 @@ ou detalhe de schema.
 | `AgressoresDaBolaApplicationTests` | Carga do contexto, que valida os mapeamentos JPA e o parsing das consultas JPQL |
 | `PeladaServiceImplTest` | Posse da pelada, lotação e lista de espera, promoção ao liberar vaga, organizador que não sai, transições de status (Mockito) |
 | `EstatisticaServiceImplTest` | Só o organizador lança súmula, atributos por posição jogada, herança da posição do cadastro, pelada sem jogo e jogador não confirmado (Mockito) |
+| `SorteioServiceImplTest` | Posse do sorteio, pelada finalizada, só confirmados na conta, mensagens de divisão que não fecha e semente repassada ao balanceador (Mockito) |
 | `PeladaControllerWebMvcTest` | Rotas públicas e protegidas, id do token chegando ao service e 403 no formato de erro, sem banco |
 | `SegurancaIntegracaoTest` | Cadastro, login, token adulterado, 401/403 e posse da pelada de ponta a ponta contra o MySQL do contêiner |
 | `DocumentacaoOpenApiTest` | Contrato e Swagger UI acessíveis sem token, esquema `bearer-jwt` declarado, endpoints públicos sem exigência, `401`/`403`/`404` com o schema de erro e paginação como query param |
