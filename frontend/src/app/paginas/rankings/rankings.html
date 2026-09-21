@@ -1,0 +1,156 @@
+<section>
+  <header class="flex flex-wrap items-baseline justify-between gap-2">
+    <h1 class="text-2xl font-bold tracking-tight">Rankings</h1>
+    <p class="text-sm text-slate-600 dark:text-slate-400">
+      @if (peladaFiltrada(); as pelada) {
+        Só a pelada <strong class="text-slate-900 dark:text-slate-100">{{ pelada.nome }}</strong>
+        ({{ dataBr(pelada.data) }})
+      } @else {
+        Somando todas as peladas
+      }
+    </p>
+  </header>
+
+  <form
+    [formGroup]="filtros"
+    (ngSubmit)="aplicar()"
+    class="mt-5 flex flex-wrap items-end gap-3 rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900"
+  >
+    <div class="min-w-56 flex-1">
+      <label for="pelada" class="block text-xs font-medium text-slate-600 dark:text-slate-400">Pelada</label>
+      <select
+        id="pelada"
+        formControlName="peladaId"
+        class="mt-1 w-full rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm dark:border-slate-700 dark:bg-slate-950"
+      >
+        <option value="">Todas as peladas</option>
+        @for (pelada of peladas.value()?.conteudo; track pelada.id) {
+          <option [value]="pelada.id">{{ pelada.nome }} · {{ dataBr(pelada.data) }}</option>
+        }
+      </select>
+    </div>
+
+    <div>
+      <label for="limite" class="block text-xs font-medium text-slate-600 dark:text-slate-400">
+        Quantos por lista
+      </label>
+      <input
+        id="limite"
+        type="number"
+        min="1"
+        max="50"
+        formControlName="limite"
+        class="mt-1 w-24 rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm dark:border-slate-700 dark:bg-slate-950"
+      />
+    </div>
+
+    <button
+      type="submit"
+      class="rounded-md bg-emerald-600 px-4 py-1.5 text-sm font-semibold text-white hover:bg-emerald-700"
+    >
+      Aplicar
+    </button>
+  </form>
+
+  <!-- Classificação geral -->
+  <h2 class="mt-8 text-lg font-semibold">Classificação geral</h2>
+  <p class="mt-1 text-xs text-slate-500">
+    Pontos pela tabela da liga: gol 10, defesa difícil 8, assistência 7, defesa 4, desarme 3.
+  </p>
+
+  @if (geral.isLoading()) {
+    <p class="mt-3 text-sm text-slate-600 dark:text-slate-400">Carregando classificação…</p>
+  } @else if (geral.error(); as falha) {
+    <p
+      role="alert"
+      class="mt-3 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300"
+    >
+      {{ mensagemDeErro(falha, 'Não foi possível carregar a classificação') }}
+    </p>
+  } @else if (geral.value(); as classificacao) {
+    @if (classificacao.length) {
+      <div class="mt-3 overflow-x-auto rounded-lg border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+        <table class="w-full text-sm">
+          <thead class="border-b border-slate-200 text-left text-xs text-slate-500 dark:border-slate-800">
+            <tr>
+              <th class="px-3 py-2 font-medium">#</th>
+              <th class="px-3 py-2 font-medium">Jogador</th>
+              <th class="px-3 py-2 text-right font-medium">Jogos</th>
+              <th class="px-3 py-2 text-right font-medium" title="Gols">G</th>
+              <th class="px-3 py-2 text-right font-medium" title="Assistências">A</th>
+              <th class="px-3 py-2 text-right font-medium" title="Desarmes">Des</th>
+              <th class="px-3 py-2 text-right font-medium" title="Defesas">Def</th>
+              <th class="px-3 py-2 text-right font-medium" title="Defesas difíceis">DD</th>
+              <th class="px-3 py-2 text-right font-medium">Média</th>
+              <th class="px-3 py-2 text-right font-medium">Pontos</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+            @for (linha of classificacao; track linha.jogador?.id) {
+              <tr>
+                <td class="px-3 py-2 tabular-nums text-slate-500">{{ linha.posicao }}º</td>
+                <td class="px-3 py-2">
+                  <span class="font-medium">{{ linha.jogador?.nickname }}</span>
+                  <span class="text-slate-500"> · {{ linha.jogador?.posicaoDescricao }}</span>
+                </td>
+                <td class="px-3 py-2 text-right">{{ linha.jogos }}</td>
+                <td class="px-3 py-2 text-right">{{ linha.gols }}</td>
+                <td class="px-3 py-2 text-right">{{ linha.assistencias }}</td>
+                <td class="px-3 py-2 text-right">{{ linha.desarmes }}</td>
+                <td class="px-3 py-2 text-right">{{ linha.defesas }}</td>
+                <td class="px-3 py-2 text-right">{{ linha.defesasDificeis }}</td>
+                <td class="px-3 py-2 text-right text-slate-600 dark:text-slate-400">{{ linha.mediaPorJogo }}</td>
+                <td class="px-3 py-2 text-right font-semibold">{{ linha.pontuacao }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <p class="mt-2 text-xs text-slate-500">
+        Empate divide a colocação e pula a seguinte — 1º, 2º, 2º, 4º.
+      </p>
+    } @else {
+      <p class="mt-3 rounded-lg border border-dashed border-slate-300 p-8 text-center text-sm text-slate-600 dark:border-slate-700 dark:text-slate-400">
+        Ninguém pontuou ainda. A classificação aparece quando a primeira
+        <a routerLink="/peladas" class="font-medium text-emerald-700 hover:underline dark:text-emerald-400">súmula</a>
+        for lançada.
+      </p>
+    }
+  }
+
+  <!-- Destaques por atributo -->
+  <h2 class="mt-10 text-lg font-semibold">Destaques</h2>
+  <p class="mt-1 text-xs text-slate-500">Quem mais fez de cada coisa, em uma chamada só.</p>
+
+  @if (destaques.value(); as listas) {
+    <div class="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      @for (destaque of listas; track destaque.atributo) {
+        <article class="rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+          <header class="flex items-baseline justify-between">
+            <h3 class="font-semibold">{{ destaque.descricao }}</h3>
+            <span class="text-xs text-slate-500">{{ destaque.peso }} pts cada</span>
+          </header>
+
+          @if (destaque.ranking?.length) {
+            <ol class="mt-2 divide-y divide-slate-100 text-sm dark:divide-slate-800">
+              @for (linha of destaque.ranking; track linha.jogador?.id) {
+                <li class="flex items-center justify-between gap-2 py-1.5">
+                  <span>
+                    <span class="tabular-nums text-slate-500">{{ linha.posicao }}º</span>
+                    <strong class="ms-1 font-medium">{{ linha.jogador?.nickname }}</strong>
+                  </span>
+                  <span>
+                    <strong>{{ linha.total }}</strong>
+                    <span class="text-slate-500"> em {{ linha.jogos }} jogo(s)</span>
+                  </span>
+                </li>
+              }
+            </ol>
+          } @else {
+            <p class="mt-2 text-sm text-slate-500">Ninguém pontuou neste atributo ainda.</p>
+          }
+        </article>
+      }
+    </div>
+  }
+</section>

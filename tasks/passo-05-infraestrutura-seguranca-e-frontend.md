@@ -1,6 +1,6 @@
 # Passo 5 — Infraestrutura, segurança e o caminho até o frontend
 
-**Status:** etapas 1 a 4 aplicadas; etapa 5 em andamento (ver [passo 06](passo-06-frontend-angular.md))
+**Status:** roteiro concluído — as 5 etapas aplicadas (o frontend está no [passo 06](passo-06-frontend-angular.md))
 **Base:** commit `db41f19` (posições de futsal)
 
 ---
@@ -395,7 +395,7 @@ Etapa 5 — Frontend (Angular; ver passo 06)
   [x] lista de peladas com filtros e paginação
   [x] detalhe e confirmação de presença
   [x] tela de sorteio
-  [ ] súmula e rankings
+  [x] súmula e rankings
 
 Extra
   [ ] troca goleiro ↔ goleiro no refino do sorteio

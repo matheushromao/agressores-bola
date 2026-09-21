@@ -28,6 +28,18 @@ export const routes: Routes = [
     loadComponent: () => import('./paginas/peladas/pelada-detalhe').then((m) => m.PeladaDetalhe),
   },
 
+  // Pública como a API: a súmula é leitura aberta; lançar exige ser o organizador.
+  {
+    path: 'peladas/:id/sumula',
+    title: 'Súmula · Agressores da Bola',
+    loadComponent: () => import('./paginas/peladas/sumula').then((m) => m.Sumula),
+  },
+  {
+    path: 'rankings',
+    title: 'Rankings · Agressores da Bola',
+    loadComponent: () => import('./paginas/rankings/rankings').then((m) => m.Rankings),
+  },
+
   // Só o organizador sorteia (a API devolve 403), mas o mínimo é estar logado.
   {
     path: 'peladas/:id/sorteio',

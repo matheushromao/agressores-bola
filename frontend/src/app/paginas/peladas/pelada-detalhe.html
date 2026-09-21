@@ -90,6 +90,13 @@
         }
       }
 
+      <a
+        [routerLink]="['/peladas', id(), 'sumula']"
+        class="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
+      >
+        Súmula
+      </a>
+
       @if (souOrganizador()) {
         <a
           [routerLink]="['/peladas', id(), 'sorteio']"

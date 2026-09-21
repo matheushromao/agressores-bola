@@ -1,6 +1,6 @@
 # Passo 6 — Frontend Angular: autenticação e peladas
 
-**Status:** login, cadastro, lista, detalhe e sorteio entregues
+**Status:** roteiro do passo 5 concluído — login, cadastro, lista, detalhe, sorteio, súmula e rankings
 **Base:** commit `e49c1ed` (documentação OpenAPI)
 
 ---
@@ -13,8 +13,8 @@ de ambiente reprodutível, schema versionado, autenticação definida e **contra
 formal** — e é esse contrato que dispensou reescrever os 28 DTOs à mão.
 
 Escopo entregue: **login, cadastro, lista de peladas com filtros e paginação,
-detalhe com confirmação de presença** e a **tela de sorteio**. Súmula e
-rankings ficam para a próxima fatia.
+detalhe com confirmação de presença, sorteio de times, súmula e rankings** —
+o ciclo completo da pelada, do cadastro do jogador à classificação da liga.
 
 ---
 
@@ -165,11 +165,42 @@ sempre de uma divisão inteira, e o resto vira reserva. Saiu, e o invariante
 ficou escrito no Javadoc. `SorteioServiceImplTest` cobre as duas mensagens,
 a posse, o status e o repasse da semente.
 
+### 5.2 Súmula
+
+O mesmo par de regras do backend molda a tela: **só o organizador lança**, e a
+pelada precisa estar **em andamento ou finalizada** — antes disso a tela
+explica isso em vez de oferecer um formulário que daria 409.
+
+A decisão de interface que mais economiza erro é a **ficha por posição**:
+defesa e defesa difícil só existem para quem pegou o gol, desarme é de jogador
+de linha (`AtributoPontuacao.exclusivoDeGoleiro` / `exclusivoDeLinha`). Em vez
+de mostrar cinco campos e deixar a API recusar, a tela troca os campos quando a
+posição jogada muda, e zera no envio o que não vale para aquela posição. O
+seletor de jogador também só lista **confirmados**, que é quem pode ter súmula.
+
+Lançar de novo corrige o anterior — o `PUT` é idempotente por jogador — então
+"Editar" só recarrega a linha no mesmo formulário. Clicar no nickname abre o
+`detalhamento`, a quebra que mostra de onde vieram os pontos (`2 × 10 = 20`)
+em vez de só o total.
+
+### 5.3 Rankings
+
+Tela pública, com o mesmo padrão de filtro na URL: `peladaId` recorta a
+classificação a uma pelada e `limite` corta o tamanho das listas. As duas
+consultas saem juntas — a classificação geral e os destaques, que trazem o
+topo de cada atributo em **uma chamada só** (é para isso que
+`DestaqueResponse` existe).
+
+A tabela de pontuação aparece escrita na tela (gol 10, defesa difícil 8,
+assistência 7, defesa 4, desarme 3), e o rodapé explica o critério de empate
+que o backend já aplica: colocação dividida e a seguinte pulada (1º, 2º, 2º,
+4º). Nada disso é recalculado no front.
+
 ---
 
 ## 6. Testes
 
-29 testes em Vitest + jsdom, sem browser e sem backend. Eles cobrem justamente
+44 testes em Vitest + jsdom, sem browser e sem backend. Eles cobrem justamente
 o que quebra calado:
 
 | Suíte | Cobre |
@@ -179,6 +210,8 @@ o que quebra calado:
 | `peladas-lista.spec.ts` | Query string virando parâmetro da chamada, formulário reabastecido pela URL, estado vazio |
 | `pelada-detalhe.spec.ts` | Escalação agrupada, ação bloqueada para quem não está logado, `POST` com o id do token, recarga após a ação, controles só para o organizador, erro 409 visível na tela |
 | `sorteio.spec.ts` | Formulário escondido de quem não organiza, prévia da divisão, envio de **um só** critério, times/goleiro/reservas/semente desenhados, repetição pela semente, 409 na tela e botão travado com poucos confirmados |
+| `sumula.spec.ts` | Leitura pública sem formulário, quebra de pontos, aviso de pelada que não rolou, só confirmados no seletor, ficha trocando com a posição, `PUT` zerando o que não vale, `DELETE` e 409 na tela |
+| `rankings.spec.ts` | Limite padrão, recorte por pelada vindo da URL, classificação e destaques desenhados, e o estado vazio explicando que falta lançar súmula |
 | `app.spec.ts` | Header alternando entre "Entrar" e o nickname |
 
 Uma armadilha vale registro: `fixture.whenStable()` **trava** quando há
@@ -189,10 +222,9 @@ o template o lê de novo, o que no teste exige um `detectChanges()` explícito.
 
 ---
 
-## 7. O que ficou para a próxima fatia
+## 7. O que ficou
 
 - Criar e editar pelada pela interface (a API já aceita; falta a tela)
-- Súmula e rankings
 - Campos de resposta chegam todos opcionais no TypeScript, porque o contrato só
   marca `required` onde há `@NotNull`. Anotar os DTOs de resposta deixaria os
   tipos mais firmes

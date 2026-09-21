@@ -1,0 +1,277 @@
+<section>
+  <a [routerLink]="['/peladas', id()]" class="text-sm text-slate-600 hover:underline dark:text-slate-400">
+    ← Voltar para a pelada
+  </a>
+
+  @if (pelada.value(); as jogo) {
+    <header class="mt-4">
+      <h1 class="text-2xl font-bold tracking-tight">Súmula</h1>
+      <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">
+        {{ jogo.nome }} · {{ dataBr(jogo.data) }} · {{ jogo.statusDescricao }}
+      </p>
+    </header>
+  }
+
+  <!-- Lançamento, só para o organizador -->
+  @if (souOrganizador()) {
+    @if (!peladaTeveJogo()) {
+      <p
+        class="mt-6 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200"
+      >
+        Só dá para lançar súmula de pelada <strong>em andamento</strong> ou <strong>finalizada</strong>.
+        Mude a situação da pelada quando a bola rolar.
+      </p>
+    } @else {
+      <form
+        [formGroup]="form"
+        (ngSubmit)="salvar()"
+        class="mt-6 rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900"
+      >
+        <h2 class="text-sm font-semibold">
+          {{ jaLancada() ? 'Corrigir lançamento' : 'Lançar súmula' }}
+        </h2>
+        <p class="mt-1 text-xs text-slate-500">
+          Lançar de novo corrige o anterior — a súmula de um jogador na pelada é única.
+        </p>
+
+        <div class="mt-4 grid gap-4 sm:grid-cols-2">
+          <div>
+            <label for="jogador" class="block text-xs font-medium text-slate-600 dark:text-slate-400">
+              Jogador confirmado
+            </label>
+            <select
+              id="jogador"
+              formControlName="usuarioId"
+              (change)="selecionarJogador(+$any($event.target).value)"
+              class="mt-1 w-full rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm dark:border-slate-700 dark:bg-slate-950"
+            >
+              <option [value]="0">Escolha o jogador…</option>
+              @for (participante of confirmados(); track participante.participacaoId) {
+                <option [value]="participante.usuario?.id">
+                  {{ participante.usuario?.nickname }} · {{ participante.usuario?.posicaoDescricao }}
+                </option>
+              }
+            </select>
+            @if (!confirmados().length) {
+              <p class="mt-1 text-xs text-amber-700 dark:text-amber-400">
+                Ninguém confirmado nesta pelada ainda.
+              </p>
+            }
+          </div>
+
+          <div>
+            <label for="posicaoJogada" class="block text-xs font-medium text-slate-600 dark:text-slate-400">
+              Posição jogada
+            </label>
+            <select
+              id="posicaoJogada"
+              formControlName="posicaoJogada"
+              class="mt-1 w-full rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm dark:border-slate-700 dark:bg-slate-950"
+            >
+              @for (opcao of posicoes; track opcao.valor) {
+                <option [value]="opcao.valor">{{ opcao.rotulo }}</option>
+              }
+            </select>
+            <p class="mt-1 text-xs text-slate-500">
+              Vale a do cadastro, a menos que ele tenha pegado o gol nesta pelada.
+            </p>
+          </div>
+        </div>
+
+        <!-- A ficha muda com a posição: defesa é de goleiro, desarme é de linha -->
+        <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div>
+            <label for="gols" class="block text-xs font-medium text-slate-600 dark:text-slate-400">Gols</label>
+            <input
+              id="gols"
+              type="number"
+              min="0"
+              formControlName="gols"
+              class="mt-1 w-full rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm dark:border-slate-700 dark:bg-slate-950"
+            />
+          </div>
+          <div>
+            <label for="assistencias" class="block text-xs font-medium text-slate-600 dark:text-slate-400">
+              Assistências
+            </label>
+            <input
+              id="assistencias"
+              type="number"
+              min="0"
+              formControlName="assistencias"
+              class="mt-1 w-full rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm dark:border-slate-700 dark:bg-slate-950"
+            />
+          </div>
+
+          @if (goleiro()) {
+            <div>
+              <label for="defesas" class="block text-xs font-medium text-slate-600 dark:text-slate-400">
+                Defesas
+              </label>
+              <input
+                id="defesas"
+                type="number"
+                min="0"
+                formControlName="defesas"
+                class="mt-1 w-full rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm dark:border-slate-700 dark:bg-slate-950"
+              />
+            </div>
+            <div>
+              <label for="defesasDificeis" class="block text-xs font-medium text-slate-600 dark:text-slate-400">
+                Defesas difíceis
+              </label>
+              <input
+                id="defesasDificeis"
+                type="number"
+                min="0"
+                formControlName="defesasDificeis"
+                class="mt-1 w-full rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm dark:border-slate-700 dark:bg-slate-950"
+              />
+            </div>
+          } @else {
+            <div>
+              <label for="desarmes" class="block text-xs font-medium text-slate-600 dark:text-slate-400">
+                Desarmes
+              </label>
+              <input
+                id="desarmes"
+                type="number"
+                min="0"
+                formControlName="desarmes"
+                class="mt-1 w-full rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm dark:border-slate-700 dark:bg-slate-950"
+              />
+            </div>
+          }
+        </div>
+
+        <p class="mt-2 text-xs text-slate-500">
+          {{
+            goleiro()
+              ? 'Goleiro soma defesas; desarme não é contabilizado para quem está no gol.'
+              : 'Jogador de linha soma desarmes; defesas só valem para quem pegou o gol.'
+          }}
+        </p>
+
+        <button
+          type="submit"
+          [disabled]="salvando() || !confirmados().length"
+          class="mt-4 rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-60"
+        >
+          {{ salvando() ? 'Salvando…' : jaLancada() ? 'Corrigir súmula' : 'Lançar súmula' }}
+        </button>
+      </form>
+    }
+  }
+
+  @if (erro(); as mensagem) {
+    <p
+      role="alert"
+      class="mt-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300"
+    >
+      {{ mensagem }}
+    </p>
+  }
+
+  <!-- Súmula lançada -->
+  <h2 class="mt-8 text-lg font-semibold">Lançamentos</h2>
+
+  @if (sumula.isLoading()) {
+    <p class="mt-3 text-sm text-slate-600 dark:text-slate-400">Carregando súmula…</p>
+  } @else if (sumula.error(); as falha) {
+    <p
+      role="alert"
+      class="mt-3 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300"
+    >
+      {{ mensagemDeErro(falha, 'Não foi possível carregar a súmula') }}
+    </p>
+  } @else if (sumula.value(); as lancamentos) {
+    @if (lancamentos.length) {
+      <div class="mt-3 overflow-x-auto rounded-lg border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+        <table class="w-full text-sm">
+          <thead class="border-b border-slate-200 text-left text-xs text-slate-500 dark:border-slate-800">
+            <tr>
+              <th class="px-3 py-2 font-medium">Jogador</th>
+              <th class="px-3 py-2 font-medium">Posição</th>
+              <th class="px-3 py-2 text-right font-medium" title="Gols">G</th>
+              <th class="px-3 py-2 text-right font-medium" title="Assistências">A</th>
+              <th class="px-3 py-2 text-right font-medium" title="Desarmes">Des</th>
+              <th class="px-3 py-2 text-right font-medium" title="Defesas">Def</th>
+              <th class="px-3 py-2 text-right font-medium" title="Defesas difíceis">DD</th>
+              <th class="px-3 py-2 text-right font-medium">Pontos</th>
+              @if (souOrganizador()) {
+                <th class="px-3 py-2"></th>
+              }
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+            @for (linha of lancamentos; track linha.id) {
+              <tr>
+                <td class="px-3 py-2">
+                  <button
+                    type="button"
+                    (click)="alternarDetalhe(linha.id)"
+                    class="font-medium hover:underline"
+                    [attr.aria-expanded]="detalhado() === linha.id"
+                  >
+                    {{ linha.jogador?.nickname }}
+                  </button>
+                </td>
+                <td class="px-3 py-2 text-slate-600 dark:text-slate-400">
+                  {{ linha.posicaoJogadaDescricao }}
+                </td>
+                <td class="px-3 py-2 text-right">{{ linha.gols }}</td>
+                <td class="px-3 py-2 text-right">{{ linha.assistencias }}</td>
+                <td class="px-3 py-2 text-right">{{ linha.desarmes }}</td>
+                <td class="px-3 py-2 text-right">{{ linha.defesas }}</td>
+                <td class="px-3 py-2 text-right">{{ linha.defesasDificeis }}</td>
+                <td class="px-3 py-2 text-right font-semibold">{{ linha.pontuacao }}</td>
+                @if (souOrganizador()) {
+                  <td class="px-3 py-2 text-right whitespace-nowrap">
+                    <button
+                      type="button"
+                      (click)="editar(linha)"
+                      class="rounded border border-slate-300 px-2 py-0.5 text-xs font-medium hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
+                    >
+                      Editar
+                    </button>
+                    <button
+                      type="button"
+                      [disabled]="salvando()"
+                      (click)="apagar(linha.jogador!.id!)"
+                      class="ms-1 rounded border border-red-300 px-2 py-0.5 text-xs font-medium text-red-700 hover:bg-red-50 disabled:opacity-60 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-950"
+                    >
+                      Apagar
+                    </button>
+                  </td>
+                }
+              </tr>
+
+              @if (detalhado() === linha.id) {
+                <tr class="bg-slate-50 dark:bg-slate-950">
+                  <td [attr.colspan]="souOrganizador() ? 9 : 8" class="px-3 py-3">
+                    <p class="text-xs font-medium text-slate-500">De onde vieram os pontos</p>
+                    <ul class="mt-1 flex flex-wrap gap-x-5 gap-y-1 text-xs">
+                      @for (item of linha.detalhamento; track item.atributo) {
+                        <li>
+                          {{ item.descricao }}: {{ item.quantidade }} × {{ item.peso }} =
+                          <strong>{{ item.pontos }}</strong>
+                        </li>
+                      }
+                    </ul>
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+      <p class="mt-2 text-xs text-slate-500">
+        Ordenada por pontuação. Clique no nickname para ver a quebra por atributo.
+      </p>
+    } @else {
+      <p class="mt-3 rounded-lg border border-dashed border-slate-300 p-8 text-center text-sm text-slate-600 dark:border-slate-700 dark:text-slate-400">
+        Nenhuma súmula lançada nesta pelada ainda.
+      </p>
+    }
+  }
+</section>
