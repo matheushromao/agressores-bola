@@ -232,8 +232,8 @@ a partir de `src/main/resources/db/migration`.
 
 ### Com Docker
 
-Com `DB_PASSWORD` definido no `.env`, um comando sobe a aplicação e um MySQL 8 próprio —
-sem JDK nem MySQL instalados:
+Com `DB_PASSWORD` e `JWT_SECRET` definidos no `.env`, um comando sobe **o projeto
+inteiro** — frontend, API e MySQL 8 — sem JDK, Node ou MySQL instalados:
 
 ```bash
 docker compose up --build
@@ -241,8 +241,13 @@ docker compose up --build
 
 | Serviço | Endereço | Observação |
 |---|---|---|
+| Aplicação | `http://localhost:3000` | Estáticos do Angular servidos por nginx, que também encaminha `/api`; porta configurável com `FRONT_HOST_PORT` |
 | API | `http://localhost:8080` | Perfil `dev`, espera o banco ficar saudável antes de subir |
 | MySQL | `localhost:3308` | Usuário `agressores`, senha `DB_PASSWORD`; porta do host configurável com `DB_HOST_PORT` no `.env` |
+
+**Use a 3000 para usar o app.** Como o nginx encaminha `/api`, `/v3` e `/swagger-ui`
+para a aplicação, o browser fala com uma origem só: nada de CORS, e o frontend não
+precisa saber o endereço da API. A 8080 continua exposta para chamar a API direto.
 
 Os dados ficam no volume `mysql-data`. `docker compose down` para os contêineres e mantém
 os dados; `docker compose down -v` apaga o volume junto.
@@ -301,7 +306,13 @@ SPA em **Angular 22** na pasta [`frontend/`](frontend), consumindo esta API.
 Standalone components, signals e `resource()`; estilo com Tailwind CSS 4.
 
 ```bash
-docker compose up -d        # a API, na 8080
+docker compose up --build   # tudo junto, em http://localhost:3000
+```
+
+Para desenvolver com recarga automática, suba só a API pelo Compose e o Angular na mão:
+
+```bash
+docker compose up -d app    # a API, na 8080
 cd frontend && npm install
 npm start                   # http://localhost:4200
 ```
@@ -881,7 +892,7 @@ compilam. A transação é desfeita ao fim de cada teste, então nada sobra na b
 - [ ] Persistência opcional do sorteio, para manter o histórico de times de cada pelada
 - [ ] Cobertura de testes nos services e nos controllers
 - [x] Frontend: ciclo completo — agendar e editar pelada, escalação, sorteio, súmula e rankings
-- [ ] Servir o build do frontend pelo Docker Compose
+- [x] Servir o build do frontend pelo Docker Compose
 - [x] Perfis de configuração (`dev`, `test`, `prod`) com `application-{perfil}.yaml`
 - [x] Containerização com Docker Compose (aplicação + MySQL)
 

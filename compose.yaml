@@ -1,4 +1,4 @@
-# Sobe a aplicação e o MySQL: docker compose up --build
+# Sobe o frontend, a aplicação e o MySQL: docker compose up --build
 # Lê DB_PASSWORD (e opcionalmente DB_ROOT_PASSWORD) do .env na raiz.
 services:
   db:
@@ -37,6 +37,15 @@ services:
       JWT_SECRET: ${JWT_SECRET:?defina JWT_SECRET no .env}
     ports:
       - "8080:8080"
+
+  # Estáticos do Angular servidos por nginx, que também encaminha /api para a
+  # aplicação: browser e backend conversam pela mesma origem, sem CORS
+  web:
+    build: ./frontend
+    depends_on:
+      - app
+    ports:
+      - "${FRONT_HOST_PORT:-3000}:8080"
 
 volumes:
   mysql-data:

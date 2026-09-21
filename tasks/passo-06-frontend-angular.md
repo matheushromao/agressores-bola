@@ -255,12 +255,43 @@ o template o lê de novo, o que no teste exige um `detectChanges()` explícito.
 
 ---
 
-## 7. O que ficou
+## 7. Servindo o build pelo Compose
 
-O frontend cobre todos os endpoints que interessam ao uso diário. O que sobra
-não é tela, é infraestrutura:
+`docker compose up --build` agora sobe **o projeto inteiro**: MySQL, API e o
+frontend. O serviço `web` é um `Dockerfile` multi-stage — Node compila os
+estáticos, e a imagem final é só nginx com os arquivos (83 MB, contra 598 MB da
+imagem do backend, que carrega o JRE).
 
-- servir o build do front pelo Compose, hoje fora do `docker compose up`
+A peça que faz a diferença é o nginx encaminhar `/api`, `/v3` e `/swagger-ui`
+para o serviço `app`. Com isso o browser conversa com **uma origem só**:
+
+- CORS deixa de existir no caminho, em vez de depender de `CORS_ORIGENS`;
+- o frontend não precisa saber o endereço da API — a `ApiConfiguration` segue
+  com a raiz vazia, a mesma que o `proxy.conf.json` usa em desenvolvimento;
+- Swagger UI atende na mesma porta, sem decorar duas.
+
+Dois detalhes que não são óbvios e quebram calado quando faltam:
+
+1. **Fallback de SPA.** `/peladas/7/sumula` não existe em disco. Sem
+   `try_files $uri $uri/ /index.html`, recarregar a página em qualquer rota
+   interna devolve 404 — e o bug só aparece quando alguém atualiza a tela, não
+   navegando. O `try_files $uri =404` na regra dos arquivos estáticos mantém o
+   404 de verdade para um `.js` inexistente, em vez de devolver HTML.
+2. **Cache.** Os nomes dos arquivos do Angular carregam hash do conteúdo, então
+   podem ser imutáveis por um ano; o `index.html`, que aponta para eles, é
+   `no-store`. Trocar isso de lado significa servir a versão velha depois do
+   deploy.
+
+A imagem roda como usuário não-root (`nginxinc/nginx-unprivileged`, uid 101),
+escutando na 8080 do contêiner e publicada em `FRONT_HOST_PORT` (3000 por
+padrão).
+
+---
+
+## 8. O que ficou
+
+O frontend cobre todos os endpoints que interessam ao uso diário. O que sobra:
+
 - campos de resposta chegam todos opcionais no TypeScript, porque o contrato só
   marca `required` onde há `@NotNull`; anotar os DTOs de resposta deixaria os
   tipos mais firmes

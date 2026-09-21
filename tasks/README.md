@@ -52,13 +52,11 @@ tudo entra e sai como DTO.
 ## Como rodar
 
 ```bash
-# 0. O frontend (Angular) fica em frontend/ e roda com: cd frontend && npm start
-
 # 1. Informe as credenciais do MySQL num .env na raiz (ignorado pelo Git)
 printf 'DB_USERNAME=root\nDB_PASSWORD=sua_senha\nJWT_SECRET=%s\n' "$(openssl rand -base64 48)" > .env
 
-# 2. Suba a aplicação e um MySQL próprio (só exige Docker)
-docker compose up --build
+# 2. Suba o projeto inteiro — front, API e MySQL (só exige Docker)
+docker compose up --build       # o app fica em http://localhost:3000
 #    ...ou rode fora do Docker, contra o MySQL local
 ./mvnw spring-boot:run
 
@@ -66,8 +64,8 @@ docker compose up --build
 ./mvnw test
 ```
 
-A API sobe em `http://localhost:8080` e se documenta em
-`http://localhost:8080/swagger-ui.html`.
+O app sobe em `http://localhost:3000`, a API em `http://localhost:8080`, e a
+documentação interativa fica em `http://localhost:8080/swagger-ui.html`.
 
 > A referência completa da API — endpoints, exemplos, regras de negócio e notas
 > de segurança — está no [README do projeto](../README.md). Os documentos desta
