@@ -31,6 +31,9 @@
 		<!-- O springdoc nao e gerenciado pelo BOM do Spring Boot, entao a versao
 		     e obrigatoria. A linha 3.x e a que suporta o Boot 4 (a 2.x e do Boot 3). -->
 		<springdoc.version>3.1.1</springdoc.version>
+		<!-- Tambem fora do BOM do Boot. Verifica nos testes a regra de dependencia
+		     entre as camadas (domain, application, infrastructure, web). -->
+		<archunit.version>1.5.0</archunit.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -107,6 +110,12 @@
 		<dependency>
 			<groupId>org.testcontainers</groupId>
 			<artifactId>testcontainers-mysql</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.tngtech.archunit</groupId>
+			<artifactId>archunit-junit5</artifactId>
+			<version>${archunit.version}</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
