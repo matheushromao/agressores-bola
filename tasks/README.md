@@ -13,6 +13,7 @@ arquivo aqui, descrevendo **o que foi feito**, **por quê** e **como usar**.
 | 4 | [passo-04-auditoria-de-camadas-e-testes-de-endpoints.md](passo-04-auditoria-de-camadas-e-testes-de-endpoints.md) | Auditoria de SOLID/MVC camada a camada, exercício de todos os endpoints via HTTP (132 verificações) e roteiro dos próximos passos |
 | 5 | [passo-05-infraestrutura-seguranca-e-frontend.md](passo-05-infraestrutura-seguranca-e-frontend.md) | Roteiro priorizado: Flyway e perfis, Docker Compose e Testcontainers, Spring Security com JWT, OpenAPI e, por fim, o frontend |
 | 6 | [passo-06-frontend-angular.md](passo-06-frontend-angular.md) | SPA em Angular com cliente gerado do OpenAPI: login, cadastro, peladas, escalação, sorteio de times, súmula e rankings |
+| 7 | [passo-07-clean-architecture.md](passo-07-clean-architecture.md) | Refatoração do backend para Clean Architecture: domínio rico, casos de uso com portas e adapters, regra de dependência verificada pelo ArchUnit, contrato da API intacto |
 
 ## Sobre o projeto
 
@@ -28,26 +29,24 @@ Testcontainers · Lombok · Maven
 
 ## Arquitetura
 
-O projeto segue MVC com separação de camadas e princípios SOLID:
+Desde o passo 7 o backend segue Clean Architecture, com as dependências
+apontando só para dentro:
 
 ```
-controller/   → recebe HTTP, valida o formato da entrada, devolve status code
-service/      → interface do caso de uso (contrato)
-  impl/       → regras de negócio e controle transacional
-  sorteio/    → algoritmo de balanceamento de times, isolado de Spring e JPA
-repository/   → acesso a dados (Spring Data JPA)
-  specification/ → filtros dinâmicos e combináveis das listagens
-  projection/    → projeções de consultas agregadas (rankings)
-mapper/       → conversão entidade ⇄ DTO
-model/        → entidades JPA e objetos de valor do domínio
-  enums/      → domínios fechados (posição, status, tipo de campo, pontuação)
-dto/          → contratos de entrada e saída da API (records)
-exception/    → exceções de domínio e handler global
+domain/          → regras de negócio: entidades com comportamento, objetos de valor,
+                   classificação do ranking e sorteio — sem Spring
+application/     → casos de uso (interface + implementação), comandos, mappers e responses
+  port/          → portas que os casos de uso exigem: repositórios, senha, token
+infrastructure/  → adapters: Spring Data JPA, specifications, JWT, BCrypt, beans do domínio
+web/             → controllers, requests com Bean Validation, handler de erros,
+                   OpenAPI e filtro de segurança
 ```
 
-**Regra de dependência:** o controller depende da *interface* do service, nunca
-da implementação (Dependency Inversion). A entidade JPA nunca é exposta na API —
-tudo entra e sai como DTO.
+**Regra de dependência:** `web → application → domain`; `infrastructure`
+implementa as portas de `application`. O domínio não conhece Spring, HTTP nem
+banco, e o `ArquiteturaTest` (ArchUnit) quebra o build se alguma seta apontar
+para fora. A entidade JPA continua nunca exposta na API — tudo entra como
+comando e sai como response.
 
 ## Como rodar
 

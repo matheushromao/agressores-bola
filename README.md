@@ -72,37 +72,58 @@ O projeto resolve o ciclo completo de uma pelada recreativa:
 
 ## Arquitetura
 
-Camadas com dependência em sentido único — `controller → service → repository` — e os
-DTOs isolando o contrato HTTP das entidades JPA. Nenhuma entidade é serializada
-diretamente na resposta.
+Clean Architecture em quatro camadas, com as dependências apontando só para dentro:
+`web → application → domain`, e `infrastructure` implementando as portas de `application`.
+O domínio não conhece Spring, HTTP nem banco; a regra é verificada a cada build pelo
+`ArquiteturaTest` (ArchUnit).
 
 ```
 com.hmz.agressores_da_bola
-├── controller/    endpoints REST, validação de entrada, códigos HTTP
-├── service/       contratos de caso de uso (interfaces)
-│   ├── impl/      regras de negócio e transações
-│   └── sorteio/   algoritmo de balanceamento, isolado de Spring e JPA
-├── repository/    Spring Data JPA
-│   ├── specification/  filtros dinâmicos e componíveis
-│   └── projection/     projeções de consultas agregadas
-├── mapper/        conversão entidade ↔ DTO
-├── model/         entidades JPA e objetos de valor do domínio
-│   └── enums/     posições, status e tabela de pontuação
-├── dto/           records de request e response
-└── exception/     exceções de domínio e handler global
+├── domain/            regras de negócio — sem Spring
+│   ├── model/         entidades com comportamento (Pelada, ParticipacaoPelada, Usuario,
+│   │   │              EstatisticaPartida) e objetos de valor (DadosPelada, PerfilUsuario, ResumoEstatistico)
+│   │   └── enums/     posições, status e tabela de pontuação
+│   ├── exception/     exceções de negócio (não encontrado, regra violada, acesso negado)
+│   ├── ranking/       classificação com empate e critérios de desempate
+│   └── sorteio/       divisão e balanceamento dos times
+├── application/       casos de uso — orquestram o domínio e controlam a transação
+│   ├── port/          portas: repositórios, codificador de senha, emissor de token
+│   └── pelada/ usuario/ estatistica/ ranking/ sorteio/
+│                      interface + implementação do caso de uso, comandos, mappers e responses
+├── infrastructure/    detalhes trocáveis
+│   ├── persistence/   Spring Data JPA, adapters das portas e specifications
+│   ├── security/      JWT (HS256) e BCrypt
+│   └── config/        beans do domínio e o relógio
+└── web/               borda HTTP
+    ├── controller/    endpoints REST e códigos HTTP
+    ├── dto/           requests com Bean Validation, convertidos em comandos
+    ├── error/         handler global e contrato único de erro
+    ├── openapi/       documentação do contrato
+    └── security/      filtro de segurança, rotas públicas e CORS
 ```
 
 Decisões que sustentam o desenho:
 
-- **Interface + implementação nos services.** O controller depende do contrato, nunca da
-  implementação — o que permite trocar a regra sem tocar na borda HTTP.
-- **Entidades com comportamento.** `Pelada` sabe contar confirmados, calcular vagas e
-  proteger a própria escalação; o service coordena, não manipula coleção alheia.
-- **Mappers dedicados.** Conversão fora do service, que fica só com regra de negócio.
+- **Domínio rico.** `Pelada` agenda, escala, promove a lista de espera, valida transições
+  e checa a posse; `ParticipacaoPelada` lança a súmula; `EstatisticaPartida` sabe quais
+  números valem em cada posição. Não há setters: o estado só muda por métodos que protegem
+  as invariantes. Os casos de uso só carregam, delegam, gravam e respondem.
+- **Portas e adapters.** Os casos de uso dependem de interfaces em `application.port`; o
+  adapter JPA as implementa. A agenda do organizador é uma interface do próprio domínio
+  (`AgendaDePeladas`), para a regra de horário continuar morando na entidade.
+- **Casos de uso não conhecem HTTP.** Controllers convertem o request em comando
+  (`DadosPelada`, `LancamentoEstatistica`, `CriterioSorteio`...) antes de chamar o caso de uso.
+- **Interface + implementação nos casos de uso**, segregadas por responsabilidade
+  (`PeladaService` agenda; `EscalacaoService` cuida do elenco).
+- **Relógio injetado.** `Clock` no lugar de `LocalDateTime.now()`, para as regras de
+  horário serem testáveis.
 - **Pontuação derivada, nunca persistida.** Os pesos vivem em um único enum; gravar o
   total tornaria o histórico inconsistente no dia em que a tabela de pontos mudar.
-- **Algoritmo de sorteio sem dependências.** `BalanceadorDeTimes` recebe listas e um
-  `Random`, e devolve times — por isso é testável sem subir contexto Spring.
+
+Compromissos conscientes: as entidades de domínio carregam as anotações JPA (evita um
+segundo modelo espelhado só para persistência), os responses são os modelos de saída
+dos casos de uso, e as portas de listagem usam `Page`/`Pageable` do Spring Data Commons.
+O porquê de cada um está no [passo 7](tasks/passo-07-clean-architecture.md).
 
 ---
 
@@ -365,7 +386,7 @@ onde o valor pode faltar de verdade, como `descricao` e `valorPorJogador`.
 | **Schema versionado** | Migrations Flyway e `ddl-auto: validate` — o Hibernate nunca altera o banco |
 | **Autenticação stateless** | JWT HS256 validado pelo Resource Server do Spring Security (assinatura, emissor e expiração); sem sessão |
 | **Senhas com hash** | BCrypt via `DelegatingPasswordEncoder`; a senha nunca sai em DTO e o login não revela se o e-mail existe |
-| **Autorização por posse** | O id do usuário vem do token, nunca do corpo; os services conferem se ele organiza a pelada ou é o próprio jogador |
+| **Autorização por posse** | O id do usuário vem do token, nunca do corpo; as entidades do domínio conferem se ele organiza a pelada ou é o próprio jogador |
 | **CORS restrito** | Só as origens de `CORS_ORIGENS` podem chamar a API pelo navegador |
 | **Sem vazamento de dados pessoais** | `UsuarioResumoResponse` omite e-mail e telefone quando o jogador aparece dentro de outro recurso |
 | **Entidades nunca expostas** | Todo request e response passa por DTO, o que impede *mass assignment* e vazamento de relacionamentos |
@@ -871,17 +892,22 @@ ou detalhe de schema.
 
 | Suíte | Cobre |
 |---|---|
+| `ArquiteturaTest` | Regra de dependência entre as camadas: domínio sem Spring nem outras camadas, casos de uso sem web, infraestrutura ou JPA, controllers dependendo só das interfaces (ArchUnit) |
+| `PeladaTest` | Agendamento, horário no passado, agenda ocupada, limite de vagas, transições de status, lotação e lista de espera, promoção ao liberar vaga, organizador que não sai, posse — direto na entidade, sem mocks |
+| `ParticipacaoPeladaTest` | Súmula: atributos por posição jogada, herança da posição do cadastro, correção do lançamento, pelada sem jogo, jogador não confirmado |
+| `ClassificacaoTest` | Empate que divide a colocação (1, 2, 2, 4), limite da tabela e desempate por menos jogos |
+| `DivisaoDeTimesTest` | Dedução do critério que falta e mensagens de divisão que não fecha |
 | `BalanceadorDeTimesTest` | Equilíbrio das estrelas, distribuição de goleiros, formação de reservas, reprodutibilidade por semente, nota padrão de quem não foi avaliado |
-| `EstatisticaPartidaRepositoryTest` | Agregação do ranking contra o banco real, filtro por pelada e remoção da súmula órfã |
+| `PeladaServiceImplTest` / `EscalacaoServiceImplTest` | Organizador vindo do token, relógio injetado, consulta à agenda, nada gravado sem posse (Mockito) |
+| `EstatisticaServiceImplTest` | Só o organizador lança súmula e lançamento recusado não grava (Mockito) |
+| `SorteioServiceImplTest` | Posse do sorteio, pelada finalizada, só confirmados na conta e semente repassada ao balanceador (Mockito) |
+| `EstatisticaJpaRepositoryTest` | Agregação do ranking contra o banco real, filtro por pelada e remoção da súmula órfã |
 | `AgressoresDaBolaApplicationTests` | Carga do contexto, que valida os mapeamentos JPA e o parsing das consultas JPQL |
-| `PeladaServiceImplTest` | Posse da pelada, lotação e lista de espera, promoção ao liberar vaga, organizador que não sai, transições de status (Mockito) |
-| `EstatisticaServiceImplTest` | Só o organizador lança súmula, atributos por posição jogada, herança da posição do cadastro, pelada sem jogo e jogador não confirmado (Mockito) |
-| `SorteioServiceImplTest` | Posse do sorteio, pelada finalizada, só confirmados na conta, mensagens de divisão que não fecha e semente repassada ao balanceador (Mockito) |
-| `PeladaControllerWebMvcTest` | Rotas públicas e protegidas, id do token chegando ao service e 403 no formato de erro, sem banco |
+| `PeladaControllerWebMvcTest` | Rotas públicas e protegidas, id do token chegando ao caso de uso e 403 no formato de erro, sem banco |
 | `SegurancaIntegracaoTest` | Cadastro, login, token adulterado, 401/403 e posse da pelada de ponta a ponta contra o MySQL do contêiner |
 | `DocumentacaoOpenApiTest` | Contrato e Swagger UI acessíveis sem token, esquema `bearer-jwt` declarado, endpoints públicos sem exigência, `401`/`403`/`404` com o schema de erro e paginação como query param |
 
-`EstatisticaPartidaRepositoryTest` usa `@DataJpaTest` apontado para o MySQL do
+`EstatisticaJpaRepositoryTest` usa `@DataJpaTest` apontado para o MySQL do
 contêiner (`@AutoConfigureTestDatabase(replace = NONE)` e `TestcontainersConfiguration`) — é a única forma de
 garantir que o `group by` e a expressão de construtor realmente executam, e não só
 compilam. A transação é desfeita ao fim de cada teste, então nada sobra na base.
@@ -895,6 +921,7 @@ compilam. A transação é desfeita ao fim de cada teste, então nada sobra na b
 - [x] Documentação interativa com OpenAPI / Swagger UI
 - [ ] Persistência opcional do sorteio, para manter o histórico de times de cada pelada
 - [ ] Cobertura de testes nos services e nos controllers
+- [x] Clean Architecture: domínio rico, casos de uso com portas e adapters, regra de dependência verificada no build
 - [x] Frontend: ciclo completo — agendar e editar pelada, escalação, sorteio, súmula e rankings
 - [x] Servir o build do frontend pelo Docker Compose
 - [x] Perfis de configuração (`dev`, `test`, `prod`) com `application-{perfil}.yaml`
